@@ -6,6 +6,8 @@ from tabulate import tabulate
 
 
 def host_range_ping_tab(ip_start, ip_end):
+    if ipaddress.ip_address(ip_start) > ipaddress.ip_address(ip_end):
+        ip_start, ip_end = ip_end, ip_start
     ip_start, ip_end = list(map(lambda x: str(ipaddress.ip_address(x)), [ip_start, ip_end]))
     start_base = re.match(r'\d+.\d+.\d+.', ip_start)[0]
     end_base = re.match(r'\d+.\d+.\d+.', ip_end)[0]
