@@ -7,6 +7,7 @@ from utils.parser import create_parser
 from errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError,
                     UsernameToLongError)
 from utils.decorators import Log
+from utils.descriptors import ClientName
 
 import logging
 import log.client_log_config
@@ -18,16 +19,18 @@ log = Log(logger)
 class Client:
     """Класс Клиент"""
 
+    __name = ClientName()
+
     def __init__(self, host, name="Guest"):
-        # self.__name = name
-        self.__set_name(name)
+        self.__name = name
+        # self.__set_name(name)
         self.__host = host
         self.__socket = socket(AF_INET, SOCK_STREAM)
 
-    # @property
-    # def name(self):
-    #     return self.__name
-    #
+    @property
+    def name(self):
+        return self.__name
+
     # @name.setter
     # def __name(self, value):
     #     if not isinstance(value, str):
@@ -36,17 +39,17 @@ class Client:
     #         raise UsernameToLongError(value)
     #     self.__name = value
 
-    def get_name(self):
-        return self.__name
-
-    def __set_name(self, name):
-        if not isinstance(name, str):
-            raise TypeError
-        if len(name) > 25:
-            raise UsernameToLongError(name)
-        self.__name = name
-
-    name = property(get_name, __set_name)
+    # def get_name(self):
+    #     return self.__name
+    #
+    # def __set_name(self, name):
+    #     if not isinstance(name, str):
+    #         raise TypeError
+    #     if len(name) > 25:
+    #         raise UsernameToLongError(name)
+    #     self.__name = name
+    #
+    # name = property(get_name, __set_name)
 
     @log
     def connect(self):
