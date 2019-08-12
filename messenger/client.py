@@ -21,10 +21,10 @@ class Client(metaclass=ClientVerifier):
     __name = ClientName()
     __host = CheckedHost()
 
-    def __init__(self, host, name="Guest"):
+    def __init__(self, host, transport, name="Guest"):
         self.__name = name
         self.__host = host
-        self.__socket = socket(AF_INET, SOCK_STREAM)
+        self.__socket = transport
 
     @property
     def name(self):
@@ -114,7 +114,6 @@ class Client(metaclass=ClientVerifier):
         """
         while True:
             message = recieve_message(self.__socket)  # читаем сообщение
-            # print(message)
             print(message[MESSAGE])  # там должно быть сообщение всем
 
     def write_messages(self):
@@ -135,12 +134,10 @@ def run():
     # account_name = "Doctor_Che"
     status = "Yep, I am here!"
 
-    # transport = socket(AF_INET, SOCK_STREAM)
-    # transport.connect((parser.parse_args().addr, parser.parse_args().port))
-
     # client = Client((parser.parse_args().addr, parser.parse_args().port), account_name)
-    client = Client((parser.parse_args().addr, parser.parse_args().port))
-    # client = Client(transport)
+    # client = Client((parser.parse_args().addr, parser.parse_args().port))
+    transport = socket(AF_INET, SOCK_STREAM)
+    client = Client((parser.parse_args().addr, parser.parse_args().port), transport)
     if client.connect():
         msg = client.create_presence(status)  # формируем presence-сообщение
         client.send(msg)  # отправляем сообщение серверу

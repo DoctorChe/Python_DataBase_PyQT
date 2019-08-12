@@ -20,9 +20,7 @@ class ClientVerifier(type):
                         if i.argval not in methods:
                             methods.append(i.argval)
         # Если обнаружено использование недопустимого метода accept, listen, socket бросаем исключение:
-        # for command in ("accept", "listen", "socket"):
-        # Если обнаружено использование недопустимого метода accept, listen бросаем исключение:
-        for command in ("accept", "listen"):
+        for command in ("accept", "listen", "socket"):
             if command in methods:
                 raise TypeError(f"В классе обнаружено использование запрещённого метода {command}.")
         # Вызов recieve_message или send_message из utils считаем корректным использованием сокетов
@@ -30,10 +28,6 @@ class ClientVerifier(type):
             pass
         else:
             raise TypeError("Отсутствуют вызовы функций, работающих с сокетами.")
-        # Если сокет не инициализировался константами SOCK_STREAM(TCP) AF_INET(IPv4), тоже исключение.
-        # if not ("SOCK_STREAM" in attrs and "AF_INET" in attrs):
-        if not ("SOCK_STREAM" in methods and "AF_INET" in methods):
-            raise TypeError("Некорректная инициализация сокета.")
         super().__init__(clsname, bases, clsdict)
 
 
@@ -88,7 +82,8 @@ class ServerVerifier(type):
         if "connect" in methods:
             raise TypeError("В классе обнаружено использование запрещённого метода connect.")
         # Если сокет не инициализировался константами SOCK_STREAM(TCP) AF_INET(IPv4), тоже исключение.
-        if not ("SOCK_STREAM" in attrs and "AF_INET" in attrs):
+        if not (("SOCK_STREAM" in methods and "AF_INET" in methods)
+                or ("SOCK_STREAM" in attrs and "AF_INET" in attrs)):
             raise TypeError("Некорректная инициализация сокета.")
         # Обязательно вызываем конструктор предка:
         super().__init__(clsname, bases, clsdict)
