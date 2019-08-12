@@ -30,6 +30,10 @@ class ClientVerifier(type):
             pass
         else:
             raise TypeError("Отсутствуют вызовы функций, работающих с сокетами.")
+        # Если сокет не инициализировался константами SOCK_STREAM(TCP) AF_INET(IPv4), тоже исключение.
+        # if not ("SOCK_STREAM" in attrs and "AF_INET" in attrs):
+        if not ("SOCK_STREAM" in methods and "AF_INET" in methods):
+            raise TypeError("Некорректная инициализация сокета.")
         super().__init__(clsname, bases, clsdict)
 
 
@@ -83,9 +87,8 @@ class ServerVerifier(type):
         # Если обнаружено использование недопустимого метода connect, бросаем исключение:
         if "connect" in methods:
             raise TypeError("В классе обнаружено использование запрещённого метода connect.")
-        print(f"attrs = {attrs}")
-        # # Если сокет не инициализировался константами SOCK_STREAM(TCP) AF_INET(IPv4), тоже исключение.
-        # if not ("SOCK_STREAM" in attrs and "AF_INET" in attrs):
-        #     raise TypeError("Некорректная инициализация сокета.")
+        # Если сокет не инициализировался константами SOCK_STREAM(TCP) AF_INET(IPv4), тоже исключение.
+        if not ("SOCK_STREAM" in attrs and "AF_INET" in attrs):
+            raise TypeError("Некорректная инициализация сокета.")
         # Обязательно вызываем конструктор предка:
         super().__init__(clsname, bases, clsdict)
