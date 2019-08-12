@@ -4,10 +4,10 @@ from jim.config import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE
                         FROM, MESSAGE, OK)
 from jim.message import send_message, recieve_message
 from utils.parser import create_parser
-from errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError,
-                    UsernameToLongError)
+from errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
 from utils.decorators import Log
-from utils.descriptors import ClientName
+from utils.descriptors import CheckedHost, ClientName
+from utils.metaclasses import ClientVerifier
 
 import logging
 import log.client_log_config
@@ -16,40 +16,19 @@ logger = logging.getLogger("client")
 log = Log(logger)
 
 
-class Client:
-    """Класс Клиент"""
+class Client(metaclass=ClientVerifier):
 
     __name = ClientName()
+    __host = CheckedHost()
 
     def __init__(self, host, name="Guest"):
         self.__name = name
-        # self.__set_name(name)
         self.__host = host
         self.__socket = socket(AF_INET, SOCK_STREAM)
 
     @property
     def name(self):
         return self.__name
-
-    # @name.setter
-    # def __name(self, value):
-    #     if not isinstance(value, str):
-    #         raise TypeError
-    #     if len(value) > 25:
-    #         raise UsernameToLongError(value)
-    #     self.__name = value
-
-    # def get_name(self):
-    #     return self.__name
-    #
-    # def __set_name(self, name):
-    #     if not isinstance(name, str):
-    #         raise TypeError
-    #     if len(name) > 25:
-    #         raise UsernameToLongError(name)
-    #     self.__name = name
-    #
-    # name = property(get_name, __set_name)
 
     @log
     def connect(self):
@@ -156,14 +135,17 @@ def run():
     # account_name = "Doctor_Che"
     status = "Yep, I am here!"
 
+    # transport = socket(AF_INET, SOCK_STREAM)
+    # transport.connect((parser.parse_args().addr, parser.parse_args().port))
+
     # client = Client((parser.parse_args().addr, parser.parse_args().port), account_name)
     client = Client((parser.parse_args().addr, parser.parse_args().port))
+    # client = Client(transport)
     if client.connect():
         msg = client.create_presence(status)  # формируем presence-сообщение
         client.send(msg)  # отправляем сообщение серверу
         response = client.recieve()  # получаем ответ от сервера
         response = client.translate_message(response)  # разбираем сообщение от сервера
-        # print(response)
         if response["response"] == OK:
             print("Соединение установлено.")
             if parser.parse_args().mode == "r":
