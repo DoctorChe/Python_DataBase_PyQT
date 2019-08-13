@@ -9,12 +9,9 @@ logger = logging.getLogger('client')
 
 class ClientName:
     """Дескриптор для проверки имени клиента"""
-    # def __init__(self, my_attr):  # my_attr - имя атрибута
-    #     self.my_attr = my_attr
-    #
     # def __get__(self, instance, owner):
     #     # owner - класс
-    #     return instance.__dict__[self.my_attr]
+    #     return instance.__dict__[self.name]
 
     def __set__(self, instance, value):
         # value - имя клиента
