@@ -48,14 +48,16 @@ class TestClientInstance(unittest.TestCase):
     # проверяем, что имя клиента записывается корректно, если мы его передаем
     def test_instant_creation_guest(self):
         client = Client((DEFAULT_CLIENT_IP, DEFAULT_PORT))
-        account_name = client.get_name()
+        # account_name = client.get_name()
+        account_name = client.name
         self.assertEqual(account_name, "Guest")
         client.close()
 
     # проверяем, что имя клиента записывается корректно, если мы его передаем
     def test_instant_creation_param(self):
         client = Client((DEFAULT_CLIENT_IP, DEFAULT_PORT), "test_user_name")
-        account_name = client.get_name()
+        # account_name = client.get_name()
+        account_name = client.name
         self.assertEqual(account_name, "test_user_name")
         client.close()
 

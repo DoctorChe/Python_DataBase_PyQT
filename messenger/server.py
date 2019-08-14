@@ -6,6 +6,8 @@ from jim.config import WORKERS
 from jim.message import send_message, recieve_message
 from utils.parser import create_parser
 from utils.decorators import Log
+from utils.descriptors import CheckedHost
+from utils.metaclasses import ServerVerifier
 
 import logging
 import log.server_log_config
@@ -14,21 +16,26 @@ logger = logging.getLogger("server")
 log = Log(logger)
 
 
-class Server:
-    """Класс Сервер"""
+class Server(metaclass=ServerVerifier):
+
+    __host = CheckedHost()
 
     def __init__(self, host: Tuple[str, int]):
         self.__host = host
         self.__new_listen_socket()
 
     def __new_listen_socket(self):
-        self.__server = socket(AF_INET, SOCK_STREAM)
-        self.__server.bind(self.__host)
-        self.__server.listen(WORKERS)
-        self.__server.settimeout(0.2)  # Таймаут для операций с сокетом
-        # Таймаут необходим, чтобы выполнять разные действия с сокетом:
-        # - проверить сокет на наличие подключений новых клиентов
-        # - проверить сокет на наличие данных
+        transport = socket(AF_INET, SOCK_STREAM)
+        transport.bind(self.__host)
+        transport.listen(WORKERS)
+        transport.settimeout(0.5)
+        # # Таймаут необходим, чтобы выполнять разные действия с сокетом:
+        # # - проверить сокет на наличие подключений новых клиентов
+        # # - проверить сокет на наличие данных
+
+        # Начинаем слушать сокет.
+        self.__server = transport
+        # self.__server.listen()
 
     def listen(self):
         clients = []  # список объектов клиентских сокетов
