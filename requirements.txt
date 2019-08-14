@@ -1,3 +1,4 @@
 chardet
 tabulate
 jupyter
+sqlalchemy
