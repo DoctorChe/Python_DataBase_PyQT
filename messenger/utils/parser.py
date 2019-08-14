@@ -25,11 +25,15 @@ def create_parser(server=False):
         ip = DEFAULT_SERVER_IP
     else:
         ip = DEFAULT_CLIENT_IP
-    parser.add_argument("-m", "--mode",
-                        default="r",
+    # parser.add_argument("-m", "--mode",
+    #                     default="r",
+    #                     type=str,
+    #                     choices={"r", "w"},
+    #                     help="Режим работы клиента (r - чтение, w - запись)")
+    parser.add_argument("-n", "--name",
+                        default="Guest",
                         type=str,
-                        choices={"r", "w"},
-                        help="Режим работы клиента (r - чтение, w - запись)")
+                        help="Имя клиента")
     parser.add_argument("-a", "--addr",
                         default=ip,
                         type=str,

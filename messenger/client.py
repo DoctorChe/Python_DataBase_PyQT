@@ -1,3 +1,4 @@
+import threading
 import time
 from socket import socket, AF_INET, SOCK_STREAM
 from jim.config import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, MSG, RESPONSE_CODES, TO,
@@ -119,25 +120,43 @@ class Client(metaclass=ClientVerifier):
     def write_messages(self):
         """Клиент пишет сообщение в бесконечном цикле"""
         while True:
-            text = input("Ваше сообщение: ")  # Вводим сообщение с клавиатуры
-            message = self.create_message("#all", text)  # Создаем jim сообщение
-            send_message(self.__socket, message)  # отправляем на сервер
+            message_str = input(">>> ")
+            if message_str.startswith("message"):
+                message_list = message_str.split()
+                try:
+                    to = message_list[1]
+                    text = ' '.join(message_list[2:])
+                except IndexError:
+                    print("Не задан получатель или текст сообщения")
+                else:
+                    message = self.create_message(to, text)
+                    self.send(message)
+            elif message_str == "help":
+                print("message <получатель> <текст> - отправить сообщение")
+            elif message_str == "exit":
+                break
+            else:
+                print("Неверная команда, для справки введите help")
 
-    @staticmethod
-    def create_message(message_to, text, account_name='Guest'):
-        return {ACTION: MSG, TIME: time.time(), TO: message_to, FROM: account_name, MESSAGE: text}
+    def create_message(self, message_to, text):
+        return {
+            ACTION: MSG,
+            TIME: time.time(),
+            TO: message_to,
+            FROM: self.__name,
+            MESSAGE: text
+        }
 
 
 def run():
     parser = create_parser()
 
-    # account_name = "Doctor_Che"
+    account_name = parser.parse_args().name
+    print(account_name)
     status = "Yep, I am here!"
 
-    # client = Client((parser.parse_args().addr, parser.parse_args().port), account_name)
-    # client = Client((parser.parse_args().addr, parser.parse_args().port))
     transport = socket(AF_INET, SOCK_STREAM)
-    client = Client((parser.parse_args().addr, parser.parse_args().port), transport)
+    client = Client((parser.parse_args().addr, parser.parse_args().port), transport, account_name)
     if client.connect():
         msg = client.create_presence(status)  # формируем presence-сообщение
         client.send(msg)  # отправляем сообщение серверу
@@ -145,12 +164,12 @@ def run():
         response = client.translate_message(response)  # разбираем сообщение от сервера
         if response["response"] == OK:
             print("Соединение установлено.")
-            if parser.parse_args().mode == "r":
-                client.read_messages()
-            elif parser.parse_args().mode == "w":
-                client.write_messages()
-            else:
-                raise Exception("Не верный режим чтения/записи.")
+            print("Формат сообщения:\n"
+                  "message <получатель> <текст>")
+            t = threading.Thread(target=client.read_messages)
+            t.start()
+            client.write_messages()
+            # client.disconnect()
 
         client.close()
 

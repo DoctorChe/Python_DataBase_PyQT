@@ -1,9 +1,12 @@
 import select
+import threading
 from typing import Tuple
 from socket import socket, AF_INET, SOCK_STREAM
-from jim.config import ACTION, TIME, PRESENCE, RESPONSE, ERROR
+from jim.config import ACTION, TIME, PRESENCE, RESPONSE, ERROR, MSG, TO, FROM, USER, ACCOUNT_NAME, MESSAGE, \
+    QUIT, RESPONSE_CODES, WRONG_REQUEST, CONFLICT, OK
 from jim.config import WORKERS
 from jim.message import send_message, recieve_message
+from server_db import ServerStorage
 from utils.parser import create_parser
 from utils.decorators import Log
 from utils.descriptors import CheckedHost
@@ -17,55 +20,157 @@ log = Log(logger)
 
 
 class Server(metaclass=ServerVerifier):
+# class Server(threading.Thread, metaclass=ServerVerifier):
 
     __host = CheckedHost()
 
-    def __init__(self, host: Tuple[str, int]):
+    def __init__(self, host: Tuple[str, int], database):
         self.__host = host
-        self.__new_listen_socket()
+
+        self.clients = []  # список подключенных клиентов
+        self.names = None  # Словарь содержащий имена и соответствующие им сокеты
+
+        self.messages = []  # Список сообщений на отправку
+
+        self.database = database  # База данных сервера
+
+        super().__init__()  # Конструктор предка
 
     def __new_listen_socket(self):
         transport = socket(AF_INET, SOCK_STREAM)
         transport.bind(self.__host)
         transport.listen(WORKERS)
         transport.settimeout(0.5)
-        # # Таймаут необходим, чтобы выполнять разные действия с сокетом:
-        # # - проверить сокет на наличие подключений новых клиентов
-        # # - проверить сокет на наличие данных
+        # Таймаут необходим, чтобы выполнять разные действия с сокетом:
+        # - проверить сокет на наличие подключений новых клиентов
+        # - проверить сокет на наличие данных
 
-        # Начинаем слушать сокет.
+        # Начинаем слушать сокет
         self.__server = transport
-        # self.__server.listen()
+        self.__server.listen()
 
     def listen(self):
-        clients = []  # список объектов клиентских сокетов
+    # def run(self):
+        self.__new_listen_socket()  # Инициализация сокета
+
+        print("Сервер запущен")
+
+        if self.names is None:
+            self.names = dict()
+
+        # Основной цикл программы сервера
         while True:
+            # Ждём подключения, если таймаут вышел, ловим исключение
             try:
-                client, addr = self.__server.accept()
-                presence = recieve_message(client)  # принимаем сообщение от клиента
-                response = self.create_responce(presence)  # формируем ответ клиенту
-                send_message(client, response)  # отправляем ответ клиенту
-            except OSError as e:
+                client, client_address = self.__server.accept()
+            except OSError:
                 pass  # timeout вышел
             else:
-                print(f"Получен запрос на соединение с {str(addr)}")
-                clients.append(client)
-                print(f"clients = {clients}")
-            finally:
-                # Проверить наличие событий ввода-вывода без таймаута
-                wait = 0
-                r = []
-                w = []
+                self.clients.append(client)
+                logger.info(f"Установлено соедение с клиентом {client_address}")
+                print(f"Установлено соедение с клиентом {str(client_address)}")
+
+            # Проверить наличие событий ввода-вывода без таймаута
+            wait = 0
+            recv_data_lst = []
+            send_data_lst = []
+            err_lst = []
             try:
-                r, w, e = select.select(clients, clients, [], wait)
-            except Exception as e:
+                if self.clients:
+                    recv_data_lst, send_data_lst, err_lst = select.select(self.clients, self.clients, [], wait)
+            except OSError:
                 # Исключение произойдёт, если какой-то клиент отключится
-                pass  # Ничего не делать, если какой-то клиент отключился
-                # Обойти список клиентов, читающих из сокета
-            msgs = self.read_messages(r, clients)  # принимаем сообщение от всех клиентов
-            if msgs:
-                print(f"Получены сообщения\n{msgs}")
-                self.write_messages(msgs, w, clients)
+                pass
+
+            # Принимаем сообщения и если ошибка, исключаем клиента
+            if recv_data_lst:
+                for client_with_message in recv_data_lst:
+                    try:
+                        self.process_client_message(recieve_message(client_with_message), client_with_message)
+                    except:
+                        logger.info(f"Клиент {client_with_message.getpeername()} отключился от сервера.")
+                        self.clients.remove(client_with_message)
+
+            # Если есть сообщения, обрабатываем каждое
+            for message in self.messages:
+                try:
+                    self.process_message(message, send_data_lst)
+                except:
+                    logger.info(f"Связь с клиентом с именем {message[TO]} была потеряна")
+                    self.clients.remove(self.names[message[TO]])
+                    del self.names[message[TO]]
+            self.messages.clear()
+
+    # Функция адресной отправки сообщения определённому клиенту. Принимает словарь сообщение, список зарегистрированых
+    # пользователей и слушающие сокеты. Ничего не возвращает.
+    def process_message(self, message, listen_socks):
+        if (
+                message[TO] in self.names and
+                self.names[message[TO]] in listen_socks
+        ):
+            send_message(self.names[message[TO]], message)
+            logger.info(f"Отправлено сообщение пользователю {message[TO]} от пользователя {message[FROM]}.")
+        elif (
+                message[TO] in self.names and
+                self.names[message[TO]] not in listen_socks
+        ):
+            raise ConnectionError
+        else:
+            logger.error(
+                f"Пользователь {message[TO]} не зарегистрирован на сервере, отправка сообщения невозможна.")
+
+    # Обработчик сообщений от клиентов, принимает словарь - сообщение от клиента, проверяет корректность, отправляет
+    #     словарь-ответ в случае необходимости.
+    def process_client_message(self, message: dict, client):
+        print(f"type(client) = {type(client)}")
+        logger.debug(f"Разбор сообщения от клиента : {message}")
+        # Если это сообщение о присутствии, принимаем и отвечаем
+        if (
+                self.common_check_message(message) and
+                message[ACTION] == PRESENCE and
+                USER in message
+        ):
+            # Если такой пользователь ещё не зарегистрирован, регистрируем,
+            # иначе отправляем ответ и завершаем соединение.
+            if message[USER][ACCOUNT_NAME] not in self.names.keys():
+                self.names[message[USER][ACCOUNT_NAME]] = client
+                client_ip, client_port = client.getpeername()
+                self.database.user_login(message[USER][ACCOUNT_NAME], client_ip, client_port)
+                response = self.create_responce(OK)
+                send_message(client, response)
+            else:
+                response = self.create_responce(CONFLICT, "Имя пользователя уже занято.")
+                send_message(client, response)
+                self.clients.remove(client)
+                client.close()
+            return
+        # Если это сообщение, то добавляем его в очередь сообщений. Ответ не требуется.
+        elif (
+                self.common_check_message(message) and
+                message[ACTION] == MSG and
+                TO in message and
+                FROM in message and
+                MESSAGE in message
+        ):
+            self.messages.append(message)
+            return
+        # Если клиент выходит
+        elif (
+                self.common_check_message(message) and
+                message[ACTION] == QUIT and
+                ACCOUNT_NAME in message
+        ):
+            self.database.user_logout(message[ACCOUNT_NAME])
+            print(f"Клиент {message[ACCOUNT_NAME].fileno()} {message[ACCOUNT_NAME].getpeername()} отключился")
+            self.clients.remove(self.names[message[ACCOUNT_NAME]])
+            self.names[message[ACCOUNT_NAME]].close()
+            del self.names[message[ACCOUNT_NAME]]
+            return
+        # Иначе отдаём Bad request
+        else:
+            response = self.create_responce(WRONG_REQUEST, "Запрос некорректен.")
+            send_message(client, response)
+            return
 
     @staticmethod
     def common_check_message(msg: dict) -> bool:
@@ -95,72 +200,35 @@ class Server(metaclass=ServerVerifier):
         return False
 
     @log
-    def create_responce(self, msg: dict) -> dict:
+    def create_responce(self, responce: int, error=None) -> dict:
         """
         Формирование ответа клиенту
-        :param msg: словарь presence запроса
+        :param responce: код ответа
+        :param error: текст ошибки
         :return: словарь ответа
         """
 
-        if self.common_check_message(msg) and msg[ACTION] == PRESENCE:
-            response = {
-                RESPONSE: 200
-            }
-
-            return response
+        if isinstance(error, str):
+            if responce in RESPONSE_CODES:
+                return {
+                    RESPONSE: responce,
+                    ERROR: error
+                }
         else:
-            response = {
-                RESPONSE: 400,
-                ERROR: "Неправильный запрос/JSON объект"
+            return {
+                RESPONSE: responce
             }
-
-            return response
-
-    @staticmethod
-    def read_messages(r_clients, all_clients):
-        """Чтение запросов из списка клиентов
-        :param r_clients: клиенты которые могут отправлять сообщения
-        :param all_clients: все клиенты
-        :return:
-        """
-
-        # messages = {}      # Словарь сообщений вида {сокет: сообщение}
-        messages = []
-        for sock in r_clients:
-            try:
-                # messages[sock] = recieve_message(sock)  # Получаем входящие сообщения
-                message = recieve_message(sock)  # Получаем входящие сообщения
-                messages.append(message)  # Добавляем их в список
-                # В идеале нам нужно сделать еще проверку, что сообщение нужного формата прежде чем его пересылать!
-            except Exception:
-                print(f"Клиент {sock.fileno()} {sock.getpeername()} отключился")
-                all_clients.remove(sock)
-
-        return messages  # Возвращаем список сообщений
-
-    @staticmethod
-    def write_messages(messages, w_clients, all_clients):
-        """Эхо-ответ сервера клиентам, от которых были запросы
-        :param requests: словарь сообщений
-        :param w_clients: клиенты которые читают
-        :param all_clients: все клиенты
-        """
-        for sock in w_clients:
-            # if sock in requests:
-            for message in messages:
-                try:
-                    send_message(sock, message)  # Отправить на тот сокет, который ожидает отправки
-                except Exception:  # Сокет недоступен, клиент отключился
-                    print(f"Клиент {sock.fileno()} {sock.getpeername()} отключился")
-                    sock.close()
-                    all_clients.remove(sock)
 
 
 def run():
     parser = create_parser(True)
 
-    server = Server((parser.parse_args().addr, parser.parse_args().port))
+    database = ServerStorage()  # Инициализация базы данных
+
+    server = Server((parser.parse_args().addr, parser.parse_args().port), database)
     server.listen()
+    # server.daemon = True
+    # server.start()
 
 
 if __name__ == "__main__":

@@ -41,6 +41,15 @@ GONE = 410  # адресат существует, но недоступен (of
 # 5xx — ошибка на стороне сервера
 SERVER_ERROR = 500  # ошибка сервера
 
+# Словари - ответы:
+# 200
+RESPONSE_200 = {RESPONSE: 200}
+# 400
+RESPONSE_400 = {
+            RESPONSE: 400,
+            ERROR: None
+        }
+
 # Кортеж из кодов ответов
 RESPONSE_CODES = (
     BASIC_NOTICE,
