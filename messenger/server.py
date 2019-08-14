@@ -62,7 +62,7 @@ class Server(metaclass=ServerVerifier):
                 # Исключение произойдёт, если какой-то клиент отключится
                 pass  # Ничего не делать, если какой-то клиент отключился
                 # Обойти список клиентов, читающих из сокета
-            msgs = self.read_messages(r, clients)  # принимаем сообщение от всех клиентов
+            msgs = self.read_messages(r, clients)  # принимаем сообщения от всех клиентов
             if msgs:
                 print(f"Получены сообщения\n{msgs}")
                 self.write_messages(msgs, w, clients)
@@ -141,7 +141,7 @@ class Server(metaclass=ServerVerifier):
     @staticmethod
     def write_messages(messages, w_clients, all_clients):
         """Эхо-ответ сервера клиентам, от которых были запросы
-        :param requests: словарь сообщений
+        :param messages: словарь сообщений
         :param w_clients: клиенты которые читают
         :param all_clients: все клиенты
         """
