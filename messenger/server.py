@@ -3,7 +3,7 @@ import threading
 from typing import Tuple
 from socket import socket, AF_INET, SOCK_STREAM
 from jim.config import ACTION, TIME, PRESENCE, RESPONSE, ERROR, MSG, TO, FROM, USER, ACCOUNT_NAME, MESSAGE, \
-    QUIT, RESPONSE_CODES, WRONG_REQUEST, CONFLICT, OK
+    QUIT, RESPONSE_CODES, WRONG_REQUEST, CONFLICT, OK, NOT_FOUND
 from jim.config import WORKERS
 from jim.message import send_message, recieve_message
 from server_db import ServerStorage
@@ -19,8 +19,8 @@ logger = logging.getLogger("server")
 log = Log(logger)
 
 
-class Server(metaclass=ServerVerifier):
 # class Server(threading.Thread, metaclass=ServerVerifier):
+class Server(metaclass=ServerVerifier):
 
     __host = CheckedHost()
 
@@ -34,7 +34,7 @@ class Server(metaclass=ServerVerifier):
 
         self.database = database  # База данных сервера
 
-        super().__init__()  # Конструктор предка
+        # super().__init__()  # Конструктор предка
 
     def __new_listen_socket(self):
         transport = socket(AF_INET, SOCK_STREAM)
@@ -49,8 +49,8 @@ class Server(metaclass=ServerVerifier):
         self.__server = transport
         self.__server.listen()
 
-    def listen(self):
     # def run(self):
+    def listen(self):
         self.__new_listen_socket()  # Инициализация сокета
 
         print("Сервер запущен")
@@ -103,7 +103,7 @@ class Server(metaclass=ServerVerifier):
 
     # Функция адресной отправки сообщения определённому клиенту. Принимает словарь сообщение, список зарегистрированых
     # пользователей и слушающие сокеты. Ничего не возвращает.
-    def process_message(self, message, listen_socks):
+    def process_message(self, message: dict, listen_socks: list):
         if (
                 message[TO] in self.names and
                 self.names[message[TO]] in listen_socks
@@ -121,8 +121,7 @@ class Server(metaclass=ServerVerifier):
 
     # Обработчик сообщений от клиентов, принимает словарь - сообщение от клиента, проверяет корректность, отправляет
     #     словарь-ответ в случае необходимости.
-    def process_client_message(self, message: dict, client):
-        print(f"type(client) = {type(client)}")
+    def process_client_message(self, message: dict, client: socket):
         logger.debug(f"Разбор сообщения от клиента : {message}")
         # Если это сообщение о присутствии, принимаем и отвечаем
         if (
@@ -152,7 +151,17 @@ class Server(metaclass=ServerVerifier):
                 FROM in message and
                 MESSAGE in message
         ):
-            self.messages.append(message)
+            if message[TO] in self.names.keys():
+                if message[TO] == message[FROM]:
+                    response = self.create_responce(NOT_FOUND, "Попытка отправки сообщения самому себе")
+                    print(f"Попытка отправки сообщения самому себе ({message[TO]})")
+                    send_message(client, response)
+                else:
+                    self.messages.append(message)
+            else:
+                response = self.create_responce(NOT_FOUND, "Получатель сообщения не найден")
+                print(f"Не найден клиент с именем {message[TO]}")
+                send_message(client, response)
             return
         # Если клиент выходит
         elif (

@@ -2,7 +2,7 @@ import threading
 import time
 from socket import socket, AF_INET, SOCK_STREAM
 from jim.config import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, MSG, RESPONSE_CODES, TO,
-                        FROM, MESSAGE, OK)
+                        FROM, MESSAGE, OK, QUIT, ERROR)
 from jim.message import send_message, recieve_message
 from utils.parser import create_parser
 from errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
@@ -17,6 +17,7 @@ logger = logging.getLogger("client")
 log = Log(logger)
 
 
+# class Client(threading.Thread, metaclass=ClientVerifier):
 class Client(metaclass=ClientVerifier):
 
     __name = ClientName()
@@ -26,6 +27,8 @@ class Client(metaclass=ClientVerifier):
         self.__name = name
         self.__host = host
         self.__socket = transport
+
+        # super().__init__()  # Конструктор предка
 
     @property
     def name(self):
@@ -114,8 +117,12 @@ class Client(metaclass=ClientVerifier):
         :param client: сокет клиента
         """
         while True:
-            message = recieve_message(self.__socket)  # читаем сообщение
-            print(message[MESSAGE])  # там должно быть сообщение всем
+            message = self.recieve()  # получаем ответ от сервера
+            if RESPONSE in message:
+                if ERROR in message:
+                    print(f"Ошибка {message[RESPONSE]} - {message[ERROR]}")
+            elif MESSAGE in message:
+                print(message[MESSAGE])  # там должно быть сообщение
 
     def write_messages(self):
         """Клиент пишет сообщение в бесконечном цикле"""
@@ -133,11 +140,27 @@ class Client(metaclass=ClientVerifier):
                     self.send(message)
             elif message_str == "help":
                 print("message <получатель> <текст> - отправить сообщение")
-            elif message_str == "exit":
+            elif message_str == "quit":
+                try:
+                    send_message(self.__socket, self.create_exit_message())
+                except:
+                    pass
+                print("Завершение соединения.")
+                logger.info("Завершение работы по команде пользователя.")
+                time.sleep(0.5)  # Задержка неоходима, чтобы успело уйти сообщение о выходе
                 break
             else:
                 print("Неверная команда, для справки введите help")
 
+    # Функция создаёт словарь с сообщением о выходе
+    def create_exit_message(self):
+        return {
+            ACTION: QUIT,
+            TIME: time.time(),
+            ACCOUNT_NAME: self.__name
+        }
+
+    # Функция создаёт текстовое сообщение
     def create_message(self, message_to, text):
         return {
             ACTION: MSG,
@@ -162,14 +185,14 @@ def run():
         client.send(msg)  # отправляем сообщение серверу
         response = client.recieve()  # получаем ответ от сервера
         response = client.translate_message(response)  # разбираем сообщение от сервера
-        if response["response"] == OK:
+        if response[RESPONSE] == OK:
             print("Соединение установлено.")
             print("Формат сообщения:\n"
                   "message <получатель> <текст>")
             t = threading.Thread(target=client.read_messages)
+            t.daemon = True
             t.start()
             client.write_messages()
-            # client.disconnect()
 
         client.close()
 
