@@ -23,7 +23,7 @@ class ClientVerifier(type):
         for command in ("accept", "listen", "socket"):
             if command in methods:
                 raise TypeError(f"В классе обнаружено использование запрещённого метода {command}.")
-        # Вызов recieve_message или send_message из utils считаем корректным использованием сокетов
+        # Вызов recieve_message или send_message из common_utils считаем корректным использованием сокетов
         if "recieve_message" in methods and "send_message" in methods:
             pass
         else:

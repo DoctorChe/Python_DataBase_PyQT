@@ -4,14 +4,13 @@ from socket import socket, AF_INET, SOCK_STREAM
 from jim.config import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, MSG, RESPONSE_CODES, TO,
                         FROM, MESSAGE, OK, QUIT, ERROR)
 from jim.message import send_message, recieve_message
-from utils.parser import create_parser
-from errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
-from utils.decorators import Log
-from utils.descriptors import CheckedHost, ClientName
-from utils.metaclasses import ClientVerifier
+from client.utils.parser import create_parser
+from client.errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
+from common_utils.descriptors import CheckedHost, ClientName
+from common_utils.metaclasses import ClientVerifier
 
 import logging
-import log.client_log_config
+from common_utils.decorators import Log
 
 logger = logging.getLogger("client")
 log = Log(logger)
@@ -106,8 +105,8 @@ class Client(metaclass=ClientVerifier):
             raise ResponseCodeError(code)  # ошибка неверный код ответа
 
         # Заполняем лог
-        # res = f"args: ({response},)- {response}"
-        # logger.info(f"{res} - {self.translate_message.__name__}")
+        res = f"args: ({response},)- {response}"
+        logger.info(f"{res} - {self.translate_message.__name__}")
 
         return response
 

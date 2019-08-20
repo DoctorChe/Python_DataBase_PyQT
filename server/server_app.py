@@ -1,19 +1,17 @@
 import select
-import threading
 from typing import Tuple
 from socket import socket, AF_INET, SOCK_STREAM
-from jim.config import ACTION, TIME, PRESENCE, RESPONSE, ERROR, MSG, TO, FROM, USER, ACCOUNT_NAME, MESSAGE, \
-    QUIT, RESPONSE_CODES, WRONG_REQUEST, CONFLICT, OK, NOT_FOUND
+from jim.config import (ACTION, TIME, PRESENCE, RESPONSE, ERROR, MSG, TO, FROM, USER, ACCOUNT_NAME, MESSAGE, QUIT,
+                        RESPONSE_CODES, WRONG_REQUEST, CONFLICT, OK, NOT_FOUND)
 from jim.config import WORKERS
 from jim.message import send_message, recieve_message
-from server_db import ServerStorage
-from utils.parser import create_parser
-from utils.decorators import Log
-from utils.descriptors import CheckedHost
-from utils.metaclasses import ServerVerifier
+from server.server_db import ServerStorage
+from client.utils.parser import create_parser
+from common_utils.descriptors import CheckedHost
+from common_utils.metaclasses import ServerVerifier
 
 import logging
-import log.server_log_config
+from common_utils.decorators import Log
 
 logger = logging.getLogger("server")
 log = Log(logger)
@@ -230,7 +228,7 @@ class Server(metaclass=ServerVerifier):
 
 
 def run():
-    parser = create_parser(True)
+    parser = create_parser()
 
     database = ServerStorage()  # Инициализация базы данных
 

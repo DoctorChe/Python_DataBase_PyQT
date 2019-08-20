@@ -1,6 +1,5 @@
 """Константы для jim протокола, настройки"""
 
-ENCODING = "utf-8"  # кодировка
 ACTION = "action"  # тип сообщения между клиентом и сервером
 TIME = "time"  # время запроса
 TYPE = "type"  # необязательное поле
@@ -67,5 +66,6 @@ RESPONSE_CODES = (
     SERVER_ERROR
 )
 
+ENCODING = "utf-8"  # кодировка
 MSG_SIZE = 1024  # размер сообщения
 WORKERS = 5

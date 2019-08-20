@@ -5,10 +5,10 @@ import unittest
 
 sys.path.append(os.path.join(os.getcwd(), ".."))
 
-from client import Client
+from client.client_app import Client
 from jim.config import ACTION, TIME, USER, ACCOUNT_NAME, STATUS
-from utils.config_main import DEFAULT_CLIENT_IP, DEFAULT_PORT
-from errors import UsernameToLongError, MandatoryKeyError, ResponseCodeLenError, ResponseCodeError
+from client.utils.config_main import DEFAULT_CLIENT_IP, DEFAULT_PORT
+from client.errors import UsernameToLongError, MandatoryKeyError, ResponseCodeLenError, ResponseCodeError
 
 
 # тестируем создание экземпляра класса

@@ -6,8 +6,8 @@ import unittest
 sys.path.append(os.path.join(os.getcwd(), ".."))
 
 from jim.config import RESPONSE, ERROR, TIME, ACTION, PRESENCE, STATUS
-from utils.config_main import DEFAULT_SERVER_IP, DEFAULT_PORT
-from server import Server
+from client.utils.config_main import DEFAULT_SERVER_IP, DEFAULT_PORT
+from server.server_app import Server
 
 
 class TestServerInstance(unittest.TestCase):

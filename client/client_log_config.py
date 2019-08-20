@@ -1,16 +1,23 @@
 import logging
 import os
 
-# Папка где лежит настоящий файл
-LOG_FOLDER_PATH = os.path.dirname(os.path.abspath(__file__))
+# Папка где лежит настоящий файл + вложенная папка logs
+LOG_FOLDER_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+
+try:
+    os.makedirs(LOG_FOLDER_PATH)  # пытаемся создать папку для логов
+except FileExistsError:
+    # directory already exists
+    pass
+
 # Путь до клиентского лога
 CLIENT_LOG_FILE_PATH = os.path.join(LOG_FOLDER_PATH, "client.log")
 
 # Создаём именованный объект-логгер с именем server
 client_logger = logging.getLogger("client")
 
-# Устанавливаем уровень сообщений логгера
-client_logger.setLevel(logging.INFO)
+# # Устанавливаем уровень сообщений логгера
+# client_logger.setLevel(logging.INFO)
 
 # Создаём обработчик
 client_handler = logging.FileHandler(CLIENT_LOG_FILE_PATH, encoding="utf-8")
@@ -26,3 +33,11 @@ client_handler.setFormatter(formatter)
 
 # Связываем логгер с обработчиком
 client_logger.addHandler(client_handler)
+
+
+# отладка
+if __name__ == '__main__':
+    client_logger.critical('Test critical event')
+    client_logger.error('Test error event')
+    client_logger.debug('Test debug event')
+    client_logger.info('Test info event')

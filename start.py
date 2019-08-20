@@ -17,7 +17,7 @@ while True:
 
         # Запускаем сервер
         # Запускаем серверный скрипт и добавляем его в список процессов
-        p_list.append(Popen("python server.py",
+        p_list.append(Popen("python server",
                             creationflags=CREATE_NEW_CONSOLE))
         print("Сервер запущен")
         time.sleep(1)  # ждем на всякий пожарный
@@ -26,8 +26,8 @@ while True:
         for i in range(CLIENTS_COUNT):
             # Флаг CREATE_NEW_CONSOLE нужен для ОС Windows,
             # чтобы каждый процесс запускался в отдельном окне консоли
-            # p_list.append(Popen(f"python -i client.py -n Console{i}",
-            p_list.append(Popen(f"python client.py -n Console{i}",
+            # p_list.append(Popen(f"python -i client_app.py -n Console{i}",
+            p_list.append(Popen(f"python client -n Console{i}",
                                 creationflags=CREATE_NEW_CONSOLE))
         print(f" Запущено {CLIENTS_COUNT} клиентов")
 
