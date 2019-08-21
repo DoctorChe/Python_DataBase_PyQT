@@ -1,8 +1,13 @@
 import logging
 import os
 
-# Папка где лежит настоящий файл + вложенная папка logs
-LOG_FOLDER_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+from client.utils.config_client import ENCODING
+
+# Родительская папка от папки где лежит настоящий файл + вложенная папка logs
+LOG_FOLDER_PATH = os.path.join(
+    os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)),
+    "logs"
+)
 
 try:
     os.makedirs(LOG_FOLDER_PATH)  # пытаемся создать папку для логов
@@ -20,7 +25,7 @@ client_logger = logging.getLogger("client")
 # client_logger.setLevel(logging.INFO)
 
 # Создаём обработчик
-client_handler = logging.FileHandler(CLIENT_LOG_FILE_PATH, encoding="utf-8")
+client_handler = logging.FileHandler(CLIENT_LOG_FILE_PATH, encoding=ENCODING)
 
 # Устанавливаем уровень сообщений обработчика
 client_logger.setLevel(logging.INFO)

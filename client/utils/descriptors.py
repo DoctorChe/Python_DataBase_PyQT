@@ -1,10 +1,14 @@
 import ipaddress
 import socket
-from client.errors import UsernameToLongError
+from client.utils.errors import UsernameToLongError
 
 import logging
+from client.utils import client_log_config
+# from server.utils import server_log_config
+from client.utils.decorators import Log
 
-logger = logging.getLogger('client')
+logger = logging.getLogger("client")
+log = Log(logger)
 
 
 class ClientName:

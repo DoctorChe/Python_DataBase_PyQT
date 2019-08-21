@@ -1,16 +1,18 @@
 import threading
 import time
 from socket import socket, AF_INET, SOCK_STREAM
-from jim.config import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, MSG, RESPONSE_CODES, TO,
-                        FROM, MESSAGE, OK, QUIT, ERROR)
-from jim.message import send_message, recieve_message
+from jim.config_jim import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, MSG, RESPONSE_CODES, TO,
+                            FROM, MESSAGE, OK, QUIT, ERROR)
+from client.utils.message import send_message, recieve_message
 from client.utils.parser import create_parser
-from client.errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
-from common_utils.descriptors import CheckedHost, ClientName
-from common_utils.metaclasses import ClientVerifier
+from client.utils.metaclasses import ClientVerifier
+from client.utils.errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
+from client.utils.descriptors import CheckedHost, ClientName
 
 import logging
-from common_utils.decorators import Log
+from client.utils import client_log_config
+# from client.utils import client_log_config
+from client.utils.decorators import Log
 
 logger = logging.getLogger("client")
 log = Log(logger)

@@ -1,5 +1,5 @@
 import json
-from jim.config import ENCODING, MSG_SIZE
+from server.utils.config_server import ENCODING, MSG_SIZE
 
 
 def send_message(socket, msg):

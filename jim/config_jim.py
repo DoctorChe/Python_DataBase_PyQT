@@ -37,16 +37,22 @@ FORBIDDEN = 403  # пользователь заблокирован
 NOT_FOUND = 404  # пользователь/чат отсутствует на сервере
 CONFLICT = 409  # уже имеется подключение с указанным логином
 GONE = 410  # адресат существует, но недоступен (offline)
+CLOSED = 499  # Client Closed Request (клиент закрыл соединение)
 # 5xx — ошибка на стороне сервера
 SERVER_ERROR = 500  # ошибка сервера
 
 # Словари - ответы:
-# 200
-RESPONSE_200 = {RESPONSE: 200}
-# 400
-RESPONSE_400 = {
-            RESPONSE: 400,
-            ERROR: None
+# # 200
+# RESPONSE_200 = {RESPONSE: 200}
+# # 400
+# RESPONSE_400 = {
+#             RESPONSE: 400,
+#             ERROR: None
+#         }
+# 499
+RESPONSE_499 = {
+            RESPONSE: 499,
+            ERROR: "Client Closed Request"
         }
 
 # Кортеж из кодов ответов
@@ -66,6 +72,4 @@ RESPONSE_CODES = (
     SERVER_ERROR
 )
 
-ENCODING = "utf-8"  # кодировка
-MSG_SIZE = 1024  # размер сообщения
-WORKERS = 5
+# ENCODING = "utf-8"  # кодировка

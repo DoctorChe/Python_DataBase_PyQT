@@ -1,17 +1,19 @@
 import select
 from typing import Tuple
 from socket import socket, AF_INET, SOCK_STREAM
-from jim.config import (ACTION, TIME, PRESENCE, RESPONSE, ERROR, MSG, TO, FROM, USER, ACCOUNT_NAME, MESSAGE, QUIT,
-                        RESPONSE_CODES, WRONG_REQUEST, CONFLICT, OK, NOT_FOUND)
-from jim.config import WORKERS
-from jim.message import send_message, recieve_message
-from server.server_db import ServerStorage
-from client.utils.parser import create_parser
-from common_utils.descriptors import CheckedHost
-from common_utils.metaclasses import ServerVerifier
+from jim.config_jim import (ACTION, TIME, PRESENCE, RESPONSE, ERROR, MSG, TO, FROM, USER, ACCOUNT_NAME, MESSAGE, QUIT,
+                            RESPONSE_CODES, WRONG_REQUEST, CONFLICT, OK, NOT_FOUND)
+from server.utils.config_server import WORKERS
+from server.utils.message import send_message, recieve_message
+from server.utils.server_db import ServerStorage
+from server.utils.parser import create_parser
+from server.utils.metaclasses import ServerVerifier
+from server.utils.descriptors import CheckedHost
 
 import logging
-from common_utils.decorators import Log
+# from server.utils import server_log_config
+from server.utils import server_log_config
+from server.utils.decorators import Log
 
 logger = logging.getLogger("server")
 log = Log(logger)

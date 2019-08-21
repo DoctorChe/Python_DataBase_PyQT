@@ -1,8 +1,11 @@
 import logging.handlers
 import os
 
-# Папка где лежит настоящий файл + вложенная папка logs
-LOG_FOLDER_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+# Родительская папка от папки где лежит настоящий файл + вложенная папка logs
+LOG_FOLDER_PATH = os.path.join(
+    os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)),
+    "logs"
+)
 
 try:
     os.makedirs(LOG_FOLDER_PATH)  # пытаемся создать папку для логов
