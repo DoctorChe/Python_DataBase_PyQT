@@ -28,8 +28,24 @@ class Client(metaclass=ClientVerifier):
         self.__name = name
         self.__host = host
         self.__socket = transport
+        # self.__socket = None
 
         # super().__init__()  # Конструктор предка
+
+    def __enter__(self):
+        if not self.__socket:
+            # self.__socket = socket()
+            raise TypeError("Socket does not exist")
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        message = "Client shutdown"
+        if exc_type:
+            if exc_type is not KeyboardInterrupt:
+                message = "Client stopped with error"
+        logging.info(message)
+        self.close()
+        return True
 
     @property
     def name(self):
@@ -119,6 +135,7 @@ class Client(metaclass=ClientVerifier):
         """
         while True:
             message = self.recieve()  # получаем ответ от сервера
+            # if message:
             if RESPONSE in message:
                 if ERROR in message:
                     print(f"Ошибка {message[RESPONSE]} - {message[ERROR]}")
@@ -180,22 +197,28 @@ def run():
     status = "Yep, I am here!"
 
     transport = socket(AF_INET, SOCK_STREAM)
-    client = Client((parser.parse_args().addr, parser.parse_args().port), transport, account_name)
-    if client.connect():
-        msg = client.create_presence(status)  # формируем presence-сообщение
-        client.send(msg)  # отправляем сообщение серверу
-        response = client.recieve()  # получаем ответ от сервера
-        response = client.translate_message(response)  # разбираем сообщение от сервера
-        if response[RESPONSE] == OK:
-            print("Соединение установлено.")
-            print("Формат сообщения:\n"
-                  "message <получатель> <текст>")
-            t = threading.Thread(target=client.read_messages)
-            t.daemon = True
-            t.start()
-            client.write_messages()
 
-        client.close()
+    # client = Client((parser.parse_args().addr, parser.parse_args().port), transport, account_name)
+    with Client(
+            (parser.parse_args().addr, parser.parse_args().port),
+            transport,
+            account_name
+    ) as client:
+        if client.connect():
+            msg = client.create_presence(status)  # формируем presence-сообщение
+            client.send(msg)  # отправляем сообщение серверу
+            response = client.recieve()  # получаем ответ от сервера
+            response = client.translate_message(response)  # разбираем сообщение от сервера
+            if response[RESPONSE] == OK:
+                print("Соединение установлено.")
+                print("Формат сообщения:\n"
+                      "message <получатель> <текст>")
+                t = threading.Thread(target=client.read_messages)
+                t.daemon = True
+                t.start()
+                client.write_messages()
+
+            # client.close()
 
 
 if __name__ == "__main__":
