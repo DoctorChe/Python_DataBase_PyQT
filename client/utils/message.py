@@ -26,6 +26,8 @@ def recieve_message(socket):
     #         "response": 499,
     #         "error": "Client Closed Request"
     #     }
+    # except json.decoder.JSONDecodeError:
+    #     print("Something wrong with JSON")
     except OSError:
         return {
             "response": 499,
