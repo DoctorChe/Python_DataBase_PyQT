@@ -93,11 +93,16 @@ class Server(metaclass=ServerVerifier):
 
             # Если есть сообщения, обрабатываем каждое
             for message in self.messages:
+                # self.process_message(message, send_data_lst)
                 try:
                     self.process_message(message, send_data_lst)
-                except:
+                # except:
+                except TypeError:
                     logger.info(f"Связь с клиентом с именем {message[TO]} была потеряна")
-                    self.clients.remove(self.names[message[TO]])
+                    try:
+                        self.clients.remove(self.names[message[TO]])
+                    except ValueError:
+                        pass
                     del self.names[message[TO]]
             self.messages.clear()
 
