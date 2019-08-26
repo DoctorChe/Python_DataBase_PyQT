@@ -65,9 +65,10 @@ class ServerStorage:
         user_id = Column(Integer, ForeignKey("users.id"))
         user = relationship("AllUsers", back_populates="contacts")
 
-        def __init__(self, contact_name, user_id):
+        def __init__(self, contact_name, user_id, information):
             self.id = None
             self.name = contact_name
+            self.information = information
             self.user_id = user_id
 
     def __init__(self):
@@ -170,34 +171,15 @@ class ServerStorage:
             query = query.filter(self.AllUsers.name == username)
         return query.all()
 
-    def add_contact(self, user_name, contact_name, information=None):
-        user = self.session.query(self.AllUsers).filter_by(name=user_name).first()
-        contact = self.session.query(self.AllUsers).filter_by(name=contact_name).first()
-        if user and contact:
-            contact_exist = self.session.query(self.Contact).filter_by(user_id=user.id).filter_by(
-                name=contact.name).first()
-            if not contact_exist:
-                new_contact = self.Contact(contact.name, user.id)
-                self.session.add(new_contact)
-                # Сохраняем изменения
-                self.session.commit()
-                print(f"Contact '{new_contact.name}' added to {user.name}'s contact list")
-            else:
-                print(f"Contact '{contact_exist.name}' already exists at {user.name}'s contact list")
-
-    def remove_contact(self, user_name, contact_name):
+    def get_contact(self, user_name, contact_name):
         user = self.session.query(self.AllUsers).filter_by(name=user_name).first()
         contact = self.session.query(self.AllUsers).filter_by(name=contact_name).first()
         if user and contact:
             contact_exist = self.session.query(self.Contact).filter_by(user_id=user.id).filter_by(
                 name=contact.name).first()
             if contact_exist:
-                self.session.delete(contact_exist)
-                # Сохраняем изменения
-                self.session.commit()
-                print(f"Contact '{contact.name}' removed from {user.name}'s contact list")
-            else:
-                print(f"Contact '{contact.name}' does not exist at {user.name}'s contact list")
+                return contact_exist
+        return None
 
     def get_contacts(self, user_name):
         contact_list = []
@@ -209,20 +191,35 @@ class ServerStorage:
                 contact_list.append(contact.name)
         return contact_list
 
-    # def update_contact(self, user_name, contact_name, information=None):
-    #     user = self.session.query(self.AllUsers).filter_by(name=user_name).first()
-    #     contact = self.session.query(self.AllUsers).filter_by(name=contact_name).first()
-    #     if user and contact:
-    #         contact_exist = self.session.query(self.Contact).filter_by(user_id=user.id).filter_by(
-    #             name=contact.name).first()
-    #         if not contact_exist:
-    #             new_contact = self.Contact(contact.name, user.id)
-    #             self.session.add(new_contact)
-    #             # Сохраняем изменения
-    #             self.session.commit()
-    #             print(f"Contact '{new_contact.name}' added to {user.name}'s contact list")
-    #         else:
-    #             print(f"Contact '{contact_exist.name}' already exists at {user.name}'s contact list")
+    def add_contact(self, user_name, contact_name, information=None):
+        contact_exist = self.get_contact(user_name, contact_name)
+        if not contact_exist:
+            user = self.session.query(self.AllUsers).filter_by(name=user_name).first()
+            contact = self.session.query(self.AllUsers).filter_by(name=contact_name).first()
+            new_contact = self.Contact(contact.name, user.id, information)
+            self.session.add(new_contact)
+            self.session.commit()
+            print(f"Contact '{contact_name}' added to {user_name}'s contact list")
+        else:
+            print(f"Contact '{contact_name}' already exists at {user_name}'s contact list")
+
+    def remove_contact(self, user_name, contact_name):
+        contact_exist = self.get_contact(user_name, contact_name)
+        if contact_exist:
+            self.session.delete(contact_exist)
+            self.session.commit()
+            print(f"Contact '{contact_name}' removed from {user_name}'s contact list")
+        else:
+            print(f"Contact '{contact_name}' does not exist at {user_name}'s contact list")
+
+    def update_contact(self, user_name, contact_name, information=None):
+        contact_exist = self.get_contact(user_name, contact_name)
+        if contact_exist:
+            contact_exist.information = information
+            self.session.commit()
+            print(f"Contact '{contact_name}' updated at {user_name}'s contact list")
+        else:
+            print(f"Contact '{contact_name}' does not exist at {user_name}'s contact list")
 
 
 # Отладка
@@ -249,3 +246,8 @@ if __name__ == "__main__":
     print(test_db.get_contacts("client_1"))
     test_db.remove_contact("client_1", "client_2")
     print(test_db.get_contacts("client_1"))
+    print(f'{test_db.get_contact("client_1", "client_3").name} '
+          f'- info: {test_db.get_contact("client_1", "client_3").information}')
+    test_db.update_contact("client_1", "client_3", "New information")
+    print(f'{test_db.get_contact("client_1", "client_3").name} '
+          f'- info: {test_db.get_contact("client_1", "client_3").information}')
