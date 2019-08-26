@@ -2,7 +2,7 @@ import select
 from typing import Tuple
 from socket import socket, AF_INET, SOCK_STREAM
 from jim.config_jim import (ACTION, TIME, PRESENCE, RESPONSE, ERROR, MSG, TO, FROM, USER, ACCOUNT_NAME, MESSAGE, QUIT,
-                            RESPONSE_CODES, WRONG_REQUEST, CONFLICT, OK, NOT_FOUND)
+                            RESPONSE_CODES, WRONG_REQUEST, CONFLICT, OK, NOT_FOUND, GET_CONTACTS, ACCEPTED, ALERT)
 from server.utils.config_server import WORKERS
 from server.utils.message import send_message, recieve_message
 from server.utils.server_db import ServerStorage
@@ -159,13 +159,13 @@ class Server(metaclass=ServerVerifier):
             if message[TO] in self.names.keys():
                 if message[TO] == message[FROM]:
                     response = self.create_responce(NOT_FOUND, "Попытка отправки сообщения самому себе")
-                    print(f"Попытка отправки сообщения самому себе ({message[TO]})")
+                    print(f"Попытка отправки сообщения самому себе ('{message[TO]}')")
                     send_message(client, response)
                 else:
                     self.messages.append(message)
             else:
                 response = self.create_responce(NOT_FOUND, "Получатель сообщения не найден")
-                print(f"Не найден клиент с именем {message[TO]}")
+                print(f"Не найден клиент с именем '{message[TO]}'")
                 send_message(client, response)
             return
         # Если клиент выходит
@@ -175,10 +175,20 @@ class Server(metaclass=ServerVerifier):
                 ACCOUNT_NAME in message
         ):
             self.database.user_logout(message[ACCOUNT_NAME])
-            print(f"Клиент {message[ACCOUNT_NAME].fileno()} {message[ACCOUNT_NAME].getpeername()} отключился")
+            print(f"Клиент '{message[ACCOUNT_NAME].fileno()} {message[ACCOUNT_NAME].getpeername()}' отключился")
             self.clients.remove(self.names[message[ACCOUNT_NAME]])
             self.names[message[ACCOUNT_NAME]].close()
             del self.names[message[ACCOUNT_NAME]]
+            return
+        elif (
+                self.common_check_message(message) and
+                message[ACTION] == GET_CONTACTS and
+                ACCOUNT_NAME in message
+        ):
+            print(f"Запрос списка контактов от клиента '{message[ACCOUNT_NAME]}'")
+            contact_list = self.database.get_contacts(message[ACCOUNT_NAME])
+            response = self.create_alert_responce(ACCEPTED, contact_list)
+            send_message(client, response)
             return
         # Иначе отдаём Bad request
         else:
@@ -227,6 +237,26 @@ class Server(metaclass=ServerVerifier):
                 return {
                     RESPONSE: responce,
                     ERROR: error
+                }
+        else:
+            return {
+                RESPONSE: responce
+            }
+
+    @log
+    def create_alert_responce(self, responce: int, alert=None) -> dict:
+        """
+        Формирование ответа клиенту
+        :param responce: код ответа
+        :param error: текст ошибки
+        :return: словарь ответа
+        """
+
+        if isinstance(alert, str):
+            if responce in RESPONSE_CODES:
+                return {
+                    RESPONSE: responce,
+                    ALERT: alert
                 }
         else:
             return {
