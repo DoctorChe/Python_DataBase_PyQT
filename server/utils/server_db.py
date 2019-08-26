@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime, Table
+from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from server.utils.config_server import SERVER_DATABASE
 import datetime
@@ -9,25 +9,35 @@ import datetime
 class ServerStorage:
     Base = declarative_base()
 
+    association_table = Table(
+        "association",
+        Base.metadata,
+        Column("user_id", Integer, ForeignKey("users.id")),
+        Column("contact_id", Integer, ForeignKey("contact.id"))
+    )
+
     # Класс - отображение таблицы всех пользователей
     # Экземпляр этого класса = запись в таблице AllUsers
     class AllUsers(Base):
-        __tablename__ = "Users"
+        __tablename__ = "users"
         id = Column(Integer, primary_key=True)
         name = Column(String, unique=True)
-        # last_login = Column(String)
+        last_login = Column(String)
+        # sessions = relationship("Contact", back_populates="user")
+        contact = relationship("Contact",
+                               secondary="association")
 
         def __init__(self, username):
-            self.name = username
-            # self.last_login = datetime.datetime.now()
             self.id = None
+            self.name = username
+            self.last_login = datetime.datetime.now()
 
     # Класс - отображение таблицы активных пользователей:
     # Экземпляр этого класса = запись в таблице ActiveUsers
     class ActiveUsers(Base):
-        __tablename__ = "Active_users"
+        __tablename__ = "active_users"
         id = Column(Integer, primary_key=True)
-        user = Column(ForeignKey("Users.id"), unique=True)
+        user = Column(ForeignKey("users.id"), unique=True)
         ip_address = Column(String)
         port = Column(Integer)
         login_time = Column(DateTime)
@@ -42,9 +52,9 @@ class ServerStorage:
     # Класс - отображение таблицы истории входов
     # Экземпляр этого класса = запись в таблице LoginHistory
     class LoginHistory(Base):
-        __tablename__ = "Login_history"
+        __tablename__ = "login_history"
         id = Column(Integer, primary_key=True)
-        name = Column(ForeignKey("Users.id"))
+        name = Column(ForeignKey("users.id"))
         date_time = Column(DateTime)
         ip = Column(String)
         port = Column(Integer)
@@ -56,9 +66,24 @@ class ServerStorage:
             self.ip = ip
             self.port = port
 
+    class Contact(Base):
+        __tablename__ = "contact"
+        id = Column(Integer, primary_key=True, autoincrement=True)
+        contact_id = Column(ForeignKey("users.id"))
+        # user = relationship("AllUsers", back_populates="contacts")
+        # add_user_id = Column(ForeignKey("users.id"))
+        # add_user_id = Column(Integer)
+        # add_user = relationship("AllUsers", back_populates="contacts")
+
+        def __init__(self, contact_id, user, add_user_id):
+            self.id = None
+            self.contact_id = contact_id
+            # self.user = user
+            # self.add_user_id = add_user_id
+
     def __init__(self):
         # Создаём движок базы данных
-        # SERVER_DATABASE - sqlite:///server_db.sqlite3
+        # SERVER_DATABASE - sqlite:///server/db/server_db.sqlite3
         # echo=False - отключаем ведение лога (вывод sql-запросов)
         # pool_recycle - По умолчанию соединение с БД через 8 часов простоя обрывается.
         # Чтобы это не случилось нужно добавить опцию pool_recycle = 7200 (переустановка соединения через 2 часа)
@@ -161,9 +186,27 @@ class ServerStorage:
             query = query.filter(self.AllUsers.name == username)
         return query.all()
 
+    # def add_contact(self, username):
+    #     user = self.session.query(self.AllUsers).filter_by(name=username).first()
+    #     if user:
+    #         contact = self.Contact(user.id)
+    #         self.session.add(contact)
+    #         # Сохраняем изменения
+    #         self.session.commit()
+
+    def get_contacts(self, username):
+        contact_list = []
+        user = self.session.query(self.AllUsers).filter_by(name=username).first()
+        user_id = user.id
+        contacts = self.session.query(self.association_table).filter_by(user_id=user_id)
+        for contact in contacts:
+            contact_list.append(contact.contact_id)
+        return contact_list
+
 
 # Отладка
 if __name__ == "__main__":
+    SERVER_DATABASE = "sqlite:///server_db.sqlite3"
     test_db = ServerStorage()
     # выполняем 'подключение' пользователя
     test_db.user_login("client_1", "192.168.1.4", 8888)
@@ -178,3 +221,5 @@ if __name__ == "__main__":
     test_db.login_history("client_1")
     # выводим список известных пользователей
     print(test_db.users_list())
+    # test_db.add_contact("client_1")
+    # int(test_db.get_contacts("client_1"))
