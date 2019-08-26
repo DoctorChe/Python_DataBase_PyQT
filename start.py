@@ -3,34 +3,35 @@
 import time
 from subprocess import Popen, CREATE_NEW_CONSOLE
 
-READ_CLIENTS_COUNT = 3  # Читающие клиенты
-WRITE_CLIENTS_COUNT = 2  # Пишущие клиенты
+CLIENTS_COUNT = 2  # Количество клиентов
 p_list = []  # Список запущенных процессов
 
 while True:
-    user = input(f"Запустить сервер и "
-                 f"{READ_CLIENTS_COUNT} клиентов на запись и "
-                 f"{WRITE_CLIENTS_COUNT} клиентов на чтение (s) / "
-                 f"Выйти (q) ")
+    action = input(
+        f"Запустить сервер и {CLIENTS_COUNT} клиентов (s) / "
+        f"Выйти (q) / "
+        # f"Закрыть все окна (x) "
+    )
 
-    if user == "s":
+    if action == "s":
+
         # Запускаем сервер
         # Запускаем серверный скрипт и добавляем его в список процессов
-        p_list.append(Popen("python server.py",
+        p_list.append(Popen("python server",
                             creationflags=CREATE_NEW_CONSOLE))
         print("Сервер запущен")
         time.sleep(1)  # ждем на всякий пожарный
-        for _ in range(READ_CLIENTS_COUNT):
+
+        # Запускаем клиентов
+        for i in range(CLIENTS_COUNT):
             # Флаг CREATE_NEW_CONSOLE нужен для ОС Windows,
             # чтобы каждый процесс запускался в отдельном окне консоли
-            p_list.append(Popen("python -i client.py -m r",
+            # p_list.append(Popen(f"python -i client_app.py -n Console{i}",
+            p_list.append(Popen(f"python client -n Console{i}",
                                 creationflags=CREATE_NEW_CONSOLE))
-        print(f" Запущено {READ_CLIENTS_COUNT} клиентов на чтение")
-        for _ in range(WRITE_CLIENTS_COUNT):
-            p_list.append(Popen("python -i client.py -m w",
-                                creationflags=CREATE_NEW_CONSOLE))
-        print(f" Запущено {WRITE_CLIENTS_COUNT} клиентов на запись")
-    elif user == "q":
+        print(f" Запущено {CLIENTS_COUNT} клиентов")
+
+    elif action == "q":
         print(f"Открыто процессов {len(p_list)}")
         for p in p_list:
             print(f"Закрываю {p}")
@@ -38,3 +39,7 @@ while True:
         p_list.clear()
         print("Выхожу")
         break
+
+    # elif action == 'x':
+    #     while p_list:
+    #         p_list.pop().kill()

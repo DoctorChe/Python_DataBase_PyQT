@@ -1,11 +1,10 @@
 import argparse
-from utils.config_main import DEFAULT_SERVER_IP, DEFAULT_CLIENT_IP, DEFAULT_PORT, PROGRAM, VERSION
+from client.utils.config_client import DEFAULT_CLIENT_IP, DEFAULT_PORT, PROGRAM, VERSION
 
 
-def create_parser(server=False):
+def create_parser():
     """
     Создание объекта парсера командной строки
-    :param server: тип создаваемого объекта (сервер или клиент)
     :return: объект ArgumentParser
     """
     parser = argparse.ArgumentParser(
@@ -21,17 +20,12 @@ def create_parser(server=False):
                         action="version",
                         help="Вывести номер версии",
                         version=f"{PROGRAM} {VERSION}")
-    if server:
-        ip = DEFAULT_SERVER_IP
-    else:
-        ip = DEFAULT_CLIENT_IP
-    parser.add_argument("-m", "--mode",
-                        default="r",
+    parser.add_argument("-n", "--name",
+                        default="Guest",
                         type=str,
-                        choices={"r", "w"},
-                        help="Режим работы клиента (r - чтение, w - запись)")
+                        help="Имя клиента")
     parser.add_argument("-a", "--addr",
-                        default=ip,
+                        default=DEFAULT_CLIENT_IP,
                         type=str,
                         help="IP адрес")
     parser.add_argument("-p", "--port",
