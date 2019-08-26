@@ -22,6 +22,7 @@ AUTHENTICATE = "authenticate"  # авторизация на сервере
 JOIN = "join"  # присоединиться к чату
 LEAVE = "leave"  # покинуть чат
 GET_CONTACTS = "get_contacts"  # получить список контактов
+ADD_CONTACT = "add_contact"  # добавить контакт в список контактов
 
 # Коды ответов (будут дополняться)
 # 1xx — информационные сообщения

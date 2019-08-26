@@ -2,7 +2,8 @@ import select
 from typing import Tuple
 from socket import socket, AF_INET, SOCK_STREAM
 from jim.config_jim import (ACTION, TIME, PRESENCE, RESPONSE, ERROR, MSG, TO, FROM, USER, ACCOUNT_NAME, MESSAGE, QUIT,
-                            RESPONSE_CODES, WRONG_REQUEST, CONFLICT, OK, NOT_FOUND, GET_CONTACTS, ACCEPTED, ALERT)
+                            RESPONSE_CODES, WRONG_REQUEST, CONFLICT, OK, NOT_FOUND, GET_CONTACTS, ACCEPTED, ALERT,
+                            ADD_CONTACT)
 from server.utils.config_server import WORKERS
 from server.utils.message import send_message, recieve_message
 from server.utils.server_db import ServerStorage
@@ -180,6 +181,7 @@ class Server(metaclass=ServerVerifier):
             self.names[message[ACCOUNT_NAME]].close()
             del self.names[message[ACCOUNT_NAME]]
             return
+        # Если клиент запрашивает список контактов
         elif (
                 self.common_check_message(message) and
                 message[ACTION] == GET_CONTACTS and
@@ -187,7 +189,20 @@ class Server(metaclass=ServerVerifier):
         ):
             print(f"Запрос списка контактов от клиента '{message[ACCOUNT_NAME]}'")
             contact_list = self.database.get_contacts(message[ACCOUNT_NAME])
-            response = self.create_alert_responce(ACCEPTED, contact_list)
+            response = self.create_alert_responce(ACCEPTED, str(contact_list))
+            send_message(client, response)
+            return
+        # Если клиент пытается добавить контакт в список контактов
+        elif (
+                self.common_check_message(message) and
+                message[ACTION] == ADD_CONTACT and
+                ACCOUNT_NAME in message and
+                TO in message
+        ):
+            print(f"Запрос на добавление контакта '{message[TO]}' "
+                  f"в список контактов от клиента '{message[ACCOUNT_NAME]}'")
+            self.database.add_contact(message[ACCOUNT_NAME], message[TO])
+            response = self.create_alert_responce(ACCEPTED, "Contact added")
             send_message(client, response)
             return
         # Иначе отдаём Bad request
