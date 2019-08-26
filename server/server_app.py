@@ -3,7 +3,7 @@ from typing import Tuple
 from socket import socket, AF_INET, SOCK_STREAM
 from jim.config_jim import (ACTION, TIME, PRESENCE, RESPONSE, ERROR, MSG, TO, FROM, USER, ACCOUNT_NAME, MESSAGE, QUIT,
                             RESPONSE_CODES, WRONG_REQUEST, CONFLICT, OK, NOT_FOUND, GET_CONTACTS, ACCEPTED, ALERT,
-                            ADD_CONTACT, DEL_CONTACT)
+                            ADD_CONTACT, DEL_CONTACT, UPDATE_CONTACT, INFORMATION, GET_CONTACT)
 from server.utils.config_server import WORKERS
 from server.utils.message import send_message, recieve_message
 from server.utils.server_db import ServerStorage
@@ -192,6 +192,19 @@ class Server(metaclass=ServerVerifier):
             response = self.create_alert_responce(ACCEPTED, str(contact_list))
             send_message(client, response)
             return
+        # Если клиент запрашивает информацию о контакте из списка контактов
+        elif (
+                self.common_check_message(message) and
+                message[ACTION] == GET_CONTACT and
+                ACCOUNT_NAME in message and
+                TO in message
+        ):
+            print(f"Запрос информации о контакте '{message[TO]}' "
+                  f"из списка контактов от клиента '{message[ACCOUNT_NAME]}'")
+            contact = self.database.get_contact(message[ACCOUNT_NAME], message[TO])
+            response = self.create_alert_responce(ACCEPTED, contact.information)
+            send_message(client, response)
+            return
         # Если клиент пытается добавить контакт в список контактов
         elif (
                 self.common_check_message(message) and
@@ -216,6 +229,20 @@ class Server(metaclass=ServerVerifier):
                   f"из списка контактов от клиента '{message[ACCOUNT_NAME]}'")
             self.database.remove_contact(message[ACCOUNT_NAME], message[TO])
             response = self.create_alert_responce(ACCEPTED, "Contact removed")
+            send_message(client, response)
+            return
+        # Если клиент пытается обновить контакт в списке контактов
+        elif (
+                self.common_check_message(message) and
+                message[ACTION] == UPDATE_CONTACT and
+                ACCOUNT_NAME in message and
+                TO in message and
+                INFORMATION in message
+        ):
+            print(f"Запрос на удаление контакта '{message[TO]}' "
+                  f"из списка контактов от клиента '{message[ACCOUNT_NAME]}'")
+            self.database.update_contact(message[ACCOUNT_NAME], message[TO], message[INFORMATION])
+            response = self.create_alert_responce(ACCEPTED, "Contact updated")
             send_message(client, response)
             return
         # Иначе отдаём Bad request

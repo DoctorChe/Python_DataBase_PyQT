@@ -2,7 +2,8 @@ import threading
 import time
 from socket import socket, AF_INET, SOCK_STREAM
 from jim.config_jim import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, MSG, RESPONSE_CODES, TO,
-                            FROM, MESSAGE, OK, QUIT, ERROR, GET_CONTACTS, ACCEPTED, ALERT, ADD_CONTACT, DEL_CONTACT)
+                            FROM, MESSAGE, OK, QUIT, ERROR, GET_CONTACTS, ACCEPTED, ALERT, ADD_CONTACT, DEL_CONTACT,
+                            INFORMATION, UPDATE_CONTACT, GET_CONTACT)
 from client.utils.message import send_message, recieve_message
 from client.utils.parser import create_parser
 from client.utils.metaclasses import ClientVerifier
@@ -169,6 +170,15 @@ class Client(metaclass=ClientVerifier):
                 else:
                     message = self.add_contact(contact)
                     self.send(message)
+            elif message_str.startswith("get_contact"):
+                message_list = message_str.split()
+                try:
+                    contact = message_list[1]
+                except IndexError:
+                    print("Не задано имя контакта")
+                else:
+                    message = self.get_contact(contact)
+                    self.send(message)
             elif message_str.startswith("del_contact"):
                 message_list = message_str.split()
                 try:
@@ -177,6 +187,16 @@ class Client(metaclass=ClientVerifier):
                     print("Не задано имя контакта")
                 else:
                     message = self.remove_contact(contact)
+                    self.send(message)
+            elif message_str.startswith("update_contact"):
+                message_list = message_str.split()
+                try:
+                    contact = message_list[1]
+                    information = ' '.join(message_list[2:])
+                except IndexError:
+                    print("Не задано имя контакта")
+                else:
+                    message = self.update_contact(contact, information)
                     self.send(message)
             elif message_str == "help":
                 print("message <получатель> <текст> - отправить сообщение")
@@ -209,6 +229,15 @@ class Client(metaclass=ClientVerifier):
             ACCOUNT_NAME: self.__name
         }
 
+    # Функция создаёт словарь с сообщением о получении информации о контакте
+    def get_contact(self, contact_name):
+        return {
+            ACTION: GET_CONTACT,
+            TIME: time.time(),
+            ACCOUNT_NAME: self.__name,
+            TO: contact_name
+        }
+
     # Функция создаёт словарь с сообщением о получении списка контактов
     def add_contact(self, contact_name):
         return {
@@ -225,6 +254,16 @@ class Client(metaclass=ClientVerifier):
             TIME: time.time(),
             ACCOUNT_NAME: self.__name,
             TO: contact_name
+        }
+
+    # Функция создаёт словарь с сообщением о получении списка контактов
+    def update_contact(self, contact_name, information):
+        return {
+            ACTION: UPDATE_CONTACT,
+            TIME: time.time(),
+            ACCOUNT_NAME: self.__name,
+            TO: contact_name,
+            INFORMATION: information
         }
 
     # Функция создаёт текстовое сообщение
