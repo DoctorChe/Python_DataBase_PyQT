@@ -3,7 +3,7 @@ from typing import Tuple
 from socket import socket, AF_INET, SOCK_STREAM
 from jim.config_jim import (ACTION, TIME, PRESENCE, RESPONSE, ERROR, MSG, TO, FROM, USER, ACCOUNT_NAME, MESSAGE, QUIT,
                             RESPONSE_CODES, WRONG_REQUEST, CONFLICT, OK, NOT_FOUND, GET_CONTACTS, ACCEPTED, ALERT,
-                            ADD_CONTACT)
+                            ADD_CONTACT, DEL_CONTACT)
 from server.utils.config_server import WORKERS
 from server.utils.message import send_message, recieve_message
 from server.utils.server_db import ServerStorage
@@ -203,6 +203,19 @@ class Server(metaclass=ServerVerifier):
                   f"в список контактов от клиента '{message[ACCOUNT_NAME]}'")
             self.database.add_contact(message[ACCOUNT_NAME], message[TO])
             response = self.create_alert_responce(ACCEPTED, "Contact added")
+            send_message(client, response)
+            return
+        # Если клиент пытается удалить контакт из списка контактов
+        elif (
+                self.common_check_message(message) and
+                message[ACTION] == DEL_CONTACT and
+                ACCOUNT_NAME in message and
+                TO in message
+        ):
+            print(f"Запрос на удаление контакта '{message[TO]}' "
+                  f"из списка контактов от клиента '{message[ACCOUNT_NAME]}'")
+            self.database.remove_contact(message[ACCOUNT_NAME], message[TO])
+            response = self.create_alert_responce(ACCEPTED, "Contact removed")
             send_message(client, response)
             return
         # Иначе отдаём Bad request

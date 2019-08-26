@@ -2,7 +2,7 @@ import threading
 import time
 from socket import socket, AF_INET, SOCK_STREAM
 from jim.config_jim import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, MSG, RESPONSE_CODES, TO,
-                            FROM, MESSAGE, OK, QUIT, ERROR, GET_CONTACTS, ACCEPTED, ALERT, ADD_CONTACT)
+                            FROM, MESSAGE, OK, QUIT, ERROR, GET_CONTACTS, ACCEPTED, ALERT, ADD_CONTACT, DEL_CONTACT)
 from client.utils.message import send_message, recieve_message
 from client.utils.parser import create_parser
 from client.utils.metaclasses import ClientVerifier
@@ -169,6 +169,15 @@ class Client(metaclass=ClientVerifier):
                 else:
                     message = self.add_contact(contact)
                     self.send(message)
+            elif message_str.startswith("del_contact"):
+                message_list = message_str.split()
+                try:
+                    contact = message_list[1]
+                except IndexError:
+                    print("Не задано имя контакта")
+                else:
+                    message = self.remove_contact(contact)
+                    self.send(message)
             elif message_str == "help":
                 print("message <получатель> <текст> - отправить сообщение")
             elif message_str == "quit":
@@ -204,6 +213,15 @@ class Client(metaclass=ClientVerifier):
     def add_contact(self, contact_name):
         return {
             ACTION: ADD_CONTACT,
+            TIME: time.time(),
+            ACCOUNT_NAME: self.__name,
+            TO: contact_name
+        }
+
+    # Функция создаёт словарь с сообщением о получении списка контактов
+    def remove_contact(self, contact_name):
+        return {
+            ACTION: DEL_CONTACT,
             TIME: time.time(),
             ACCOUNT_NAME: self.__name,
             TO: contact_name
