@@ -1,3 +1,3 @@
-from client_app import run
+from client_app import main
 
-run()
+main()

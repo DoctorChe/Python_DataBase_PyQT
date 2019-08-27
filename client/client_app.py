@@ -276,8 +276,14 @@ class Client(metaclass=ClientVerifier):
             MESSAGE: text
         }
 
+    def run(self):
+        t = threading.Thread(target=self.read_messages)
+        t.daemon = True
+        t.start()
+        self.write_messages()
 
-def run():
+
+def main():
     parser = create_parser()
 
     account_name = parser.parse_args().name
@@ -286,7 +292,6 @@ def run():
 
     transport = socket(AF_INET, SOCK_STREAM)
 
-    # client = Client((parser.parse_args().addr, parser.parse_args().port), transport, account_name)
     with Client(
             (parser.parse_args().addr, parser.parse_args().port),
             transport,
@@ -310,13 +315,8 @@ def run():
                         print("Список контактов пуст")
                 print("Формат сообщения:\n"
                       "message <получатель> <текст>")
-                t = threading.Thread(target=client.read_messages)
-                t.daemon = True
-                t.start()
-                client.write_messages()
-
-            # client.close()
+                client.run()
 
 
 if __name__ == "__main__":
-    run()
+    main()
