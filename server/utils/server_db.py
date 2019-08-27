@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime, Table
+from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from server.utils.config_server import SERVER_DATABASE
 import datetime
@@ -12,39 +12,40 @@ class ServerStorage:
     # Класс - отображение таблицы всех пользователей
     # Экземпляр этого класса = запись в таблице AllUsers
     class AllUsers(Base):
-        __tablename__ = "Users"
+        __tablename__ = "users"
         id = Column(Integer, primary_key=True)
         name = Column(String, unique=True)
-        # last_login = Column(String)
+        last_login = Column(String)
+        contacts = relationship("Contact", back_populates="user")
 
         def __init__(self, username):
-            self.name = username
-            # self.last_login = datetime.datetime.now()
             self.id = None
+            self.name = username
+            self.last_login = datetime.datetime.now()
 
     # Класс - отображение таблицы активных пользователей:
     # Экземпляр этого класса = запись в таблице ActiveUsers
     class ActiveUsers(Base):
-        __tablename__ = "Active_users"
+        __tablename__ = "active_users"
         id = Column(Integer, primary_key=True)
-        user = Column(ForeignKey("Users.id"), unique=True)
+        user = Column(ForeignKey("users.id"), unique=True)
         ip_address = Column(String)
         port = Column(Integer)
         login_time = Column(DateTime)
 
         def __init__(self, user_id, ip_address, port, login_time):
+            self.id = None
             self.user = user_id
             self.ip_address = ip_address
             self.port = port
             self.login_time = login_time
-            self.id = None
 
     # Класс - отображение таблицы истории входов
     # Экземпляр этого класса = запись в таблице LoginHistory
     class LoginHistory(Base):
-        __tablename__ = "Login_history"
+        __tablename__ = "login_history"
         id = Column(Integer, primary_key=True)
-        name = Column(ForeignKey("Users.id"))
+        name = Column(ForeignKey("users.id"))
         date_time = Column(DateTime)
         ip = Column(String)
         port = Column(Integer)
@@ -56,9 +57,23 @@ class ServerStorage:
             self.ip = ip
             self.port = port
 
+    class Contact(Base):
+        __tablename__ = "contact"
+        id = Column(Integer, primary_key=True, autoincrement=True)
+        name = Column(String)
+        information = Column(String)
+        user_id = Column(Integer, ForeignKey("users.id"))
+        user = relationship("AllUsers", back_populates="contacts")
+
+        def __init__(self, contact_name, user_id, information):
+            self.id = None
+            self.name = contact_name
+            self.information = information
+            self.user_id = user_id
+
     def __init__(self):
         # Создаём движок базы данных
-        # SERVER_DATABASE - sqlite:///server_db.sqlite3
+        # SERVER_DATABASE - sqlite:///server/db/server_db.sqlite3
         # echo=False - отключаем ведение лога (вывод sql-запросов)
         # pool_recycle - По умолчанию соединение с БД через 8 часов простоя обрывается.
         # Чтобы это не случилось нужно добавить опцию pool_recycle = 7200 (переустановка соединения через 2 часа)
@@ -66,11 +81,6 @@ class ServerStorage:
 
         # Метаданные доступны через класс Base
         self.metadata = self.Base.metadata
-
-        # # Таблица доступна через атрибут класса
-        # users_table = self.AllUsers.__table__
-        # active_users_table = self.ActiveUsers.__table__
-        # user_login_history = self.LoginHistory.__table__
 
         # Создаём таблицы
         self.metadata.create_all(self.database_engine)
@@ -161,9 +171,60 @@ class ServerStorage:
             query = query.filter(self.AllUsers.name == username)
         return query.all()
 
+    def get_contact(self, user_name, contact_name):
+        user = self.session.query(self.AllUsers).filter_by(name=user_name).first()
+        contact = self.session.query(self.AllUsers).filter_by(name=contact_name).first()
+        if user and contact:
+            contact_exist = self.session.query(self.Contact).filter_by(user_id=user.id).filter_by(
+                name=contact.name).first()
+            if contact_exist:
+                return contact_exist
+        return None
+
+    def get_contacts(self, user_name):
+        contact_list = []
+        user = self.session.query(self.AllUsers).filter_by(name=user_name).first()
+        if user:
+            user_id = user.id
+            contacts = self.session.query(self.Contact).filter_by(user_id=user_id)
+            for contact in contacts:
+                contact_list.append(contact.name)
+        return contact_list
+
+    def add_contact(self, user_name, contact_name, information=None):
+        contact_exist = self.get_contact(user_name, contact_name)
+        if not contact_exist:
+            user = self.session.query(self.AllUsers).filter_by(name=user_name).first()
+            contact = self.session.query(self.AllUsers).filter_by(name=contact_name).first()
+            new_contact = self.Contact(contact.name, user.id, information)
+            self.session.add(new_contact)
+            self.session.commit()
+            print(f"Contact '{contact_name}' added to {user_name}'s contact list")
+        else:
+            print(f"Contact '{contact_name}' already exists at {user_name}'s contact list")
+
+    def remove_contact(self, user_name, contact_name):
+        contact_exist = self.get_contact(user_name, contact_name)
+        if contact_exist:
+            self.session.delete(contact_exist)
+            self.session.commit()
+            print(f"Contact '{contact_name}' removed from {user_name}'s contact list")
+        else:
+            print(f"Contact '{contact_name}' does not exist at {user_name}'s contact list")
+
+    def update_contact(self, user_name, contact_name, information=None):
+        contact_exist = self.get_contact(user_name, contact_name)
+        if contact_exist:
+            contact_exist.information = information
+            self.session.commit()
+            print(f"Contact '{contact_name}' updated at {user_name}'s contact list")
+        else:
+            print(f"Contact '{contact_name}' does not exist at {user_name}'s contact list")
+
 
 # Отладка
 if __name__ == "__main__":
+    SERVER_DATABASE = "sqlite:///server_db.sqlite3"
     test_db = ServerStorage()
     # выполняем 'подключение' пользователя
     test_db.user_login("client_1", "192.168.1.4", 8888)
@@ -178,3 +239,15 @@ if __name__ == "__main__":
     test_db.login_history("client_1")
     # выводим список известных пользователей
     print(test_db.users_list())
+    test_db.add_contact("client_1", "client_2")
+    test_db.user_login("client_3", "192.168.1.5", 9999)
+    test_db.add_contact("client_1", "client_3")
+    test_db.add_contact("client_1", "client_3")
+    print(test_db.get_contacts("client_1"))
+    test_db.remove_contact("client_1", "client_2")
+    print(test_db.get_contacts("client_1"))
+    print(f'{test_db.get_contact("client_1", "client_3").name} '
+          f'- info: {test_db.get_contact("client_1", "client_3").information}')
+    test_db.update_contact("client_1", "client_3", "New information")
+    print(f'{test_db.get_contact("client_1", "client_3").name} '
+          f'- info: {test_db.get_contact("client_1", "client_3").information}')

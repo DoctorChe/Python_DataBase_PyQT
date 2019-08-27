@@ -8,9 +8,11 @@ ACCOUNT_NAME = "account_name"  # имя пользователя - чата
 STATUS = "status"  # статус пользователя
 RESPONSE = "response"  # код ответа
 ERROR = "error"  # текст ошибки
+ALERT = "alert"  # информационное сообщение
 TO = "message_to"  # получатель
 FROM = "account_name"  # отправитель
 MESSAGE = "text"  # текст сообщения
+INFORMATION = "information"  # информация о контакте
 
 # Значения (Методы протокола (actions))
 PRESENCE = "presence"  # присутствие. Сервисное сообщение для извещения сервера о присутствии клиента online
@@ -20,6 +22,11 @@ QUIT = "quit"  # отключение от сервера
 AUTHENTICATE = "authenticate"  # авторизация на сервере
 JOIN = "join"  # присоединиться к чату
 LEAVE = "leave"  # покинуть чат
+GET_CONTACTS = "get_contacts"  # получить список контактов
+GET_CONTACT = "get_contact"  # получить информацию о контакте
+ADD_CONTACT = "add_contact"  # добавить контакт в список контактов
+DEL_CONTACT = "del_contact"  # удалить контакт из списка контактов
+UPDATE_CONTACT = "update_contact"  # обновить контакт в списке контактов
 
 # Коды ответов (будут дополняться)
 # 1xx — информационные сообщения

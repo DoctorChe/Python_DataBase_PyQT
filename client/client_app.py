@@ -2,7 +2,8 @@ import threading
 import time
 from socket import socket, AF_INET, SOCK_STREAM
 from jim.config_jim import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, MSG, RESPONSE_CODES, TO,
-                            FROM, MESSAGE, OK, QUIT, ERROR)
+                            FROM, MESSAGE, OK, QUIT, ERROR, GET_CONTACTS, ACCEPTED, ALERT, ADD_CONTACT, DEL_CONTACT,
+                            INFORMATION, UPDATE_CONTACT, GET_CONTACT)
 from client.utils.message import send_message, recieve_message
 from client.utils.parser import create_parser
 from client.utils.metaclasses import ClientVerifier
@@ -135,10 +136,11 @@ class Client(metaclass=ClientVerifier):
         """
         while True:
             message = self.recieve()  # получаем ответ от сервера
-            # if message:
             if RESPONSE in message:
                 if ERROR in message:
                     print(f"Ошибка {message[RESPONSE]} - {message[ERROR]}")
+                if ALERT in message:
+                    print(message[ALERT])
             elif MESSAGE in message:
                 print(message[MESSAGE])  # там должно быть сообщение
 
@@ -156,11 +158,52 @@ class Client(metaclass=ClientVerifier):
                 else:
                     message = self.create_message(to, text)
                     self.send(message)
+            elif message_str.startswith("get_contact_list"):
+                message = self.get_contact_list()
+                self.send(message)
+            elif message_str.startswith("add_contact"):
+                message_list = message_str.split()
+                try:
+                    contact = message_list[1]
+                except IndexError:
+                    print("Не задано имя контакта")
+                else:
+                    message = self.add_contact(contact)
+                    self.send(message)
+            elif message_str.startswith("get_contact"):
+                message_list = message_str.split()
+                try:
+                    contact = message_list[1]
+                except IndexError:
+                    print("Не задано имя контакта")
+                else:
+                    message = self.get_contact(contact)
+                    self.send(message)
+            elif message_str.startswith("del_contact"):
+                message_list = message_str.split()
+                try:
+                    contact = message_list[1]
+                except IndexError:
+                    print("Не задано имя контакта")
+                else:
+                    message = self.remove_contact(contact)
+                    self.send(message)
+            elif message_str.startswith("update_contact"):
+                message_list = message_str.split()
+                try:
+                    contact = message_list[1]
+                    information = ' '.join(message_list[2:])
+                except IndexError:
+                    print("Не задано имя контакта")
+                else:
+                    message = self.update_contact(contact, information)
+                    self.send(message)
             elif message_str == "help":
                 print("message <получатель> <текст> - отправить сообщение")
             elif message_str == "quit":
                 try:
                     send_message(self.__socket, self.create_exit_message())
+                    # self.send(self.create_exit_message())
                 except:
                     pass
                 print("Завершение соединения.")
@@ -176,6 +219,51 @@ class Client(metaclass=ClientVerifier):
             ACTION: QUIT,
             TIME: time.time(),
             ACCOUNT_NAME: self.__name
+        }
+
+    # Функция создаёт словарь с сообщением о получении списка контактов
+    def get_contact_list(self):
+        return {
+            ACTION: GET_CONTACTS,
+            TIME: time.time(),
+            ACCOUNT_NAME: self.__name
+        }
+
+    # Функция создаёт словарь с сообщением о получении информации о контакте
+    def get_contact(self, contact_name):
+        return {
+            ACTION: GET_CONTACT,
+            TIME: time.time(),
+            ACCOUNT_NAME: self.__name,
+            TO: contact_name
+        }
+
+    # Функция создаёт словарь с сообщением о получении списка контактов
+    def add_contact(self, contact_name):
+        return {
+            ACTION: ADD_CONTACT,
+            TIME: time.time(),
+            ACCOUNT_NAME: self.__name,
+            TO: contact_name
+        }
+
+    # Функция создаёт словарь с сообщением о получении списка контактов
+    def remove_contact(self, contact_name):
+        return {
+            ACTION: DEL_CONTACT,
+            TIME: time.time(),
+            ACCOUNT_NAME: self.__name,
+            TO: contact_name
+        }
+
+    # Функция создаёт словарь с сообщением о получении списка контактов
+    def update_contact(self, contact_name, information):
+        return {
+            ACTION: UPDATE_CONTACT,
+            TIME: time.time(),
+            ACCOUNT_NAME: self.__name,
+            TO: contact_name,
+            INFORMATION: information
         }
 
     # Функция создаёт текстовое сообщение
@@ -211,6 +299,15 @@ def run():
             response = client.translate_message(response)  # разбираем сообщение от сервера
             if response[RESPONSE] == OK:
                 print("Соединение установлено.")
+                msg = client.get_contact_list()  # запрашиваем список контактов
+                client.send(msg)  # отправляем сообщение серверу
+                response = client.recieve()  # получаем ответ от сервера
+                response = client.translate_message(response)  # разбираем сообщение от сервера
+                if response[RESPONSE] == ACCEPTED:
+                    if ALERT in response:
+                        print(f"Список контактов:\n{response[ALERT]}")
+                    else:
+                        print("Список контактов пуст")
                 print("Формат сообщения:\n"
                       "message <получатель> <текст>")
                 t = threading.Thread(target=client.read_messages)
