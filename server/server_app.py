@@ -50,6 +50,17 @@ class Server(metaclass=ServerVerifier):
         self.__server = transport
         self.__server.listen()
 
+    def accept(self):
+        # Ждём подключения, если таймаут вышел, ловим исключение
+        try:
+            client, client_address = self.__server.accept()
+        except OSError:
+            pass  # timeout вышел
+        else:
+            self.clients.append(client)
+            logger.info(f"Установлено соедение с клиентом {client_address}")
+            print(f"Установлено соедение с клиентом {str(client_address)}")
+
     # def run(self):
     def listen(self):
         self.__new_listen_socket()  # Инициализация сокета
@@ -61,15 +72,7 @@ class Server(metaclass=ServerVerifier):
 
         # Основной цикл программы сервера
         while True:
-            # Ждём подключения, если таймаут вышел, ловим исключение
-            try:
-                client, client_address = self.__server.accept()
-            except OSError:
-                pass  # timeout вышел
-            else:
-                self.clients.append(client)
-                logger.info(f"Установлено соедение с клиентом {client_address}")
-                print(f"Установлено соедение с клиентом {str(client_address)}")
+            self.accept()
 
             # Проверить наличие событий ввода-вывода без таймаута
             wait = 0
@@ -319,7 +322,7 @@ class Server(metaclass=ServerVerifier):
             }
 
 
-def run():
+def main():
     parser = create_parser()
 
     database = ServerStorage()  # Инициализация базы данных
@@ -331,4 +334,4 @@ def run():
 
 
 if __name__ == "__main__":
-    run()
+    main()
