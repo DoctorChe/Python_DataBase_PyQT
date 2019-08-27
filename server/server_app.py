@@ -37,6 +37,19 @@ class Server(metaclass=ServerVerifier):
 
         # super().__init__()  # Конструктор предка
 
+    def __enter__(self):
+        # if not self.__server:
+        #     self.__server = socket(AF_INET, SOCK_STREAM)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        message = "Server shutdown"
+        if exc_type:
+            if exc_type is not KeyboardInterrupt:
+                message = "Server stopped with error"
+        logging.info(message)
+        return True
+
     def __new_listen_socket(self):
         transport = socket(AF_INET, SOCK_STREAM)
         transport.bind(self.__host)
@@ -306,7 +319,7 @@ class Server(metaclass=ServerVerifier):
         """
         Формирование ответа клиенту
         :param responce: код ответа
-        :param error: текст ошибки
+        :param alert: текст сообщения
         :return: словарь ответа
         """
 
@@ -327,10 +340,10 @@ def main():
 
     database = ServerStorage()  # Инициализация базы данных
 
-    server = Server((parser.parse_args().addr, parser.parse_args().port), database)
-    server.listen()
-    # server.daemon = True
-    # server.start()
+    with Server((parser.parse_args().addr, parser.parse_args().port), database) as server:
+        server.listen()
+        # server.daemon = True
+        # server.start()
 
 
 if __name__ == "__main__":
