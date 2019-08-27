@@ -27,12 +27,10 @@ class Server(metaclass=ServerVerifier):
 
     def __init__(self, host: Tuple[str, int], database):
         self.__host = host
-
+        self.__server = None
         self.clients = []  # список подключенных клиентов
         self.names = None  # Словарь содержащий имена и соответствующие им сокеты
-
         self.messages = []  # Список сообщений на отправку
-
         self.database = database  # База данных сервера
 
         # super().__init__()  # Конструктор предка
@@ -53,15 +51,11 @@ class Server(metaclass=ServerVerifier):
     def __new_listen_socket(self):
         transport = socket(AF_INET, SOCK_STREAM)
         transport.bind(self.__host)
-        transport.listen(WORKERS)
         transport.settimeout(0.5)
-        # Таймаут необходим, чтобы выполнять разные действия с сокетом:
-        # - проверить сокет на наличие подключений новых клиентов
-        # - проверить сокет на наличие данных
 
         # Начинаем слушать сокет
         self.__server = transport
-        self.__server.listen()
+        self.__server.listen(WORKERS)
 
     def accept(self):
         # Ждём подключения, если таймаут вышел, ловим исключение
@@ -74,8 +68,7 @@ class Server(metaclass=ServerVerifier):
             logger.info(f"Установлено соедение с клиентом {client_address}")
             print(f"Установлено соедение с клиентом {str(client_address)}")
 
-    # def run(self):
-    def listen(self):
+    def run(self):
         self.__new_listen_socket()  # Инициализация сокета
 
         print("Сервер запущен")
@@ -341,7 +334,7 @@ def main():
     database = ServerStorage()  # Инициализация базы данных
 
     with Server((parser.parse_args().addr, parser.parse_args().port), database) as server:
-        server.listen()
+        server.run()
         # server.daemon = True
         # server.start()
 
