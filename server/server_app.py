@@ -1,11 +1,14 @@
 import select
+import threading
 from typing import Tuple
 from socket import socket, AF_INET, SOCK_STREAM
-from jim.config_jim import (ACTION, TIME, PRESENCE, RESPONSE, ERROR, MSG, TO, FROM, USER, ACCOUNT_NAME, MESSAGE, QUIT,
-                            RESPONSE_CODES, WRONG_REQUEST, CONFLICT, OK, NOT_FOUND, GET_CONTACTS, ACCEPTED, ALERT,
-                            ADD_CONTACT, DEL_CONTACT, UPDATE_CONTACT, INFORMATION, GET_CONTACT)
+from jim.config_jim import (
+    ACTION, PRESENCE, MSG, TO, FROM, USER, ACCOUNT_NAME, MESSAGE, QUIT, WRONG_REQUEST, CONFLICT, OK, NOT_FOUND,
+    GET_CONTACTS, ACCEPTED, ADD_CONTACT, DEL_CONTACT, UPDATE_CONTACT, GET_CONTACT,
+    INFO)
 from server.utils.config_server import WORKERS
 from server.utils.message import send_message, recieve_message
+from server.utils.protocol import common_check_message, create_response, create_alert_response
 from server.utils.server_db import ServerStorage
 from server.utils.parser import create_parser
 from server.utils.metaclasses import ServerVerifier
@@ -70,10 +73,15 @@ class Server(metaclass=ServerVerifier):
 
     def read(self, sock):
         try:
-            self.process_client_message(recieve_message(sock), sock)
+            message = recieve_message(sock)
         except Exception:
             logger.info(f"Клиент {sock.getpeername()} отключился от сервера.")
             self.clients.remove(sock)
+        else:
+            if message:
+                self.process_client_message(message, sock)
+                # TODO: перенести разбор сообщения в метод run
+                # self.messages.append(message)
 
     def write(self, send_data_lst, message):
         try:
@@ -100,25 +108,35 @@ class Server(metaclass=ServerVerifier):
 
             # Проверить наличие событий ввода-вывода без таймаута
             wait = 0
-            recv_data_lst = []
-            send_data_lst = []
-            err_lst = []
+            recv_data_list = []
+            send_data_list = []
+            err_list = []
             try:
                 if self.clients:
-                    recv_data_lst, send_data_lst, err_lst = select.select(self.clients, self.clients, [], wait)
+                    recv_data_list, send_data_list, err_list = select.select(self.clients, self.clients, [], wait)
             except OSError:
                 # Исключение произойдёт, если какой-то клиент отключится
                 pass
 
             # Принимаем сообщения и если ошибка, исключаем клиента
-            if recv_data_lst:
-                for client_with_message in recv_data_lst:
+            if recv_data_list:
+                for client_with_message in recv_data_list:
                     self.read(client_with_message)
+                    # r_thread = threading.Thread(
+                    #     target=self.read, args=(client_with_message, )
+                    # )
+                    # r_thread.start()
 
             # Если есть сообщения, обрабатываем каждое
-            for message in self.messages:
-                self.write(send_data_lst, message)
-            self.messages.clear()
+            if self.messages:
+                for message in self.messages:
+                    # response = self.process_client_message(message, sock)
+                    # self.write(send_data_list, message)
+                    w_thread = threading.Thread(
+                        target=self.write, args=(send_data_list, message)
+                    )
+                    w_thread.start()
+                self.messages.clear()
 
     # Функция адресной отправки сообщения определённому клиенту. Принимает словарь сообщение, список зарегистрированых
     # пользователей и слушающие сокеты. Ничего не возвращает.
@@ -143,193 +161,119 @@ class Server(metaclass=ServerVerifier):
     def process_client_message(self, message: dict, client: socket):
         logger.debug(f"Разбор сообщения от клиента : {message}")
         # Если это сообщение о присутствии, принимаем и отвечаем
-        if (
-                self.common_check_message(message) and
-                message[ACTION] == PRESENCE and
-                USER in message
-        ):
-            # Если такой пользователь ещё не зарегистрирован, регистрируем,
-            # иначе отправляем ответ и завершаем соединение.
-            if message[USER][ACCOUNT_NAME] not in self.names.keys():
-                self.names[message[USER][ACCOUNT_NAME]] = client
-                client_ip, client_port = client.getpeername()
-                self.database.user_login(message[USER][ACCOUNT_NAME], client_ip, client_port)
-                response = self.create_responce(OK)
-                send_message(client, response)
-            else:
-                response = self.create_responce(CONFLICT, "Имя пользователя уже занято.")
-                send_message(client, response)
-                self.clients.remove(client)
-                client.close()
-            return
-        # Если это сообщение, то добавляем его в очередь сообщений. Ответ не требуется.
-        elif (
-                self.common_check_message(message) and
-                message[ACTION] == MSG and
-                TO in message and
-                FROM in message and
-                MESSAGE in message
-        ):
-            if message[TO] in self.names.keys():
-                if message[TO] == message[FROM]:
-                    response = self.create_responce(NOT_FOUND, "Попытка отправки сообщения самому себе")
-                    print(f"Попытка отправки сообщения самому себе ('{message[TO]}')")
+        if common_check_message(message):
+            if (
+                    message[ACTION] == PRESENCE and
+                    USER in message
+            ):
+                # Если такой пользователь ещё не зарегистрирован, регистрируем,
+                # иначе отправляем ответ и завершаем соединение.
+                if message[USER][ACCOUNT_NAME] not in self.names.keys():
+                    self.names[message[USER][ACCOUNT_NAME]] = client
+                    client_ip, client_port = client.getpeername()
+                    self.database.user_login(message[USER][ACCOUNT_NAME], client_ip, client_port)
+                    response = create_response(OK)
                     send_message(client, response)
                 else:
-                    self.messages.append(message)
-            else:
-                response = self.create_responce(NOT_FOUND, "Получатель сообщения не найден")
-                print(f"Не найден клиент с именем '{message[TO]}'")
+                    response = create_response(CONFLICT, "Имя пользователя уже занято.")
+                    send_message(client, response)
+                    self.clients.remove(client)
+                    client.close()
+                return
+            # Если это сообщение, то добавляем его в очередь сообщений. Ответ не требуется.
+            elif (
+                    message[ACTION] == MSG and
+                    TO in message and
+                    FROM in message and
+                    MESSAGE in message
+            ):
+                if message[TO] in self.names.keys():
+                    if message[TO] == message[FROM]:
+                        response = create_response(NOT_FOUND, "Попытка отправки сообщения самому себе")
+                        print(f"Попытка отправки сообщения самому себе ('{message[TO]}')")
+                        send_message(client, response)
+                    else:
+                        self.messages.append(message)
+                else:
+                    response = create_response(NOT_FOUND, "Получатель сообщения не найден")
+                    print(f"Не найден клиент с именем '{message[TO]}'")
+                    send_message(client, response)
+                return
+            # Если клиент выходит
+            elif (
+                    message[ACTION] == QUIT and
+                    ACCOUNT_NAME in message
+            ):
+                self.database.user_logout(message[ACCOUNT_NAME])
+                print(f"Клиент '{message[ACCOUNT_NAME].fileno()} {message[ACCOUNT_NAME].getpeername()}' отключился")
+                self.clients.remove(self.names[message[ACCOUNT_NAME]])
+                self.names[message[ACCOUNT_NAME]].close()
+                del self.names[message[ACCOUNT_NAME]]
+                return
+            # Если клиент запрашивает список контактов
+            elif (
+                    message[ACTION] == GET_CONTACTS and
+                    ACCOUNT_NAME in message
+            ):
+                print(f"Запрос списка контактов от клиента '{message[ACCOUNT_NAME]}'")
+                contact_list = self.database.get_contacts(message[ACCOUNT_NAME])
+                response = create_alert_response(ACCEPTED, str(contact_list))
                 send_message(client, response)
-            return
-        # Если клиент выходит
-        elif (
-                self.common_check_message(message) and
-                message[ACTION] == QUIT and
-                ACCOUNT_NAME in message
-        ):
-            self.database.user_logout(message[ACCOUNT_NAME])
-            print(f"Клиент '{message[ACCOUNT_NAME].fileno()} {message[ACCOUNT_NAME].getpeername()}' отключился")
-            self.clients.remove(self.names[message[ACCOUNT_NAME]])
-            self.names[message[ACCOUNT_NAME]].close()
-            del self.names[message[ACCOUNT_NAME]]
-            return
-        # Если клиент запрашивает список контактов
-        elif (
-                self.common_check_message(message) and
-                message[ACTION] == GET_CONTACTS and
-                ACCOUNT_NAME in message
-        ):
-            print(f"Запрос списка контактов от клиента '{message[ACCOUNT_NAME]}'")
-            contact_list = self.database.get_contacts(message[ACCOUNT_NAME])
-            response = self.create_alert_responce(ACCEPTED, str(contact_list))
-            send_message(client, response)
-            return
-        # Если клиент запрашивает информацию о контакте из списка контактов
-        elif (
-                self.common_check_message(message) and
-                message[ACTION] == GET_CONTACT and
-                ACCOUNT_NAME in message and
-                TO in message
-        ):
-            print(f"Запрос информации о контакте '{message[TO]}' "
-                  f"из списка контактов от клиента '{message[ACCOUNT_NAME]}'")
-            contact = self.database.get_contact(message[ACCOUNT_NAME], message[TO])
-            response = self.create_alert_responce(ACCEPTED, contact.information)
-            send_message(client, response)
-            return
-        # Если клиент пытается добавить контакт в список контактов
-        elif (
-                self.common_check_message(message) and
-                message[ACTION] == ADD_CONTACT and
-                ACCOUNT_NAME in message and
-                TO in message
-        ):
-            print(f"Запрос на добавление контакта '{message[TO]}' "
-                  f"в список контактов от клиента '{message[ACCOUNT_NAME]}'")
-            self.database.add_contact(message[ACCOUNT_NAME], message[TO])
-            response = self.create_alert_responce(ACCEPTED, "Contact added")
-            send_message(client, response)
-            return
-        # Если клиент пытается удалить контакт из списка контактов
-        elif (
-                self.common_check_message(message) and
-                message[ACTION] == DEL_CONTACT and
-                ACCOUNT_NAME in message and
-                TO in message
-        ):
-            print(f"Запрос на удаление контакта '{message[TO]}' "
-                  f"из списка контактов от клиента '{message[ACCOUNT_NAME]}'")
-            self.database.remove_contact(message[ACCOUNT_NAME], message[TO])
-            response = self.create_alert_responce(ACCEPTED, "Contact removed")
-            send_message(client, response)
-            return
-        # Если клиент пытается обновить контакт в списке контактов
-        elif (
-                self.common_check_message(message) and
-                message[ACTION] == UPDATE_CONTACT and
-                ACCOUNT_NAME in message and
-                TO in message and
-                INFORMATION in message
-        ):
-            print(f"Запрос на удаление контакта '{message[TO]}' "
-                  f"из списка контактов от клиента '{message[ACCOUNT_NAME]}'")
-            self.database.update_contact(message[ACCOUNT_NAME], message[TO], message[INFORMATION])
-            response = self.create_alert_responce(ACCEPTED, "Contact updated")
-            send_message(client, response)
-            return
+                return
+            # Если клиент запрашивает информацию о контакте из списка контактов
+            elif (
+                    message[ACTION] == GET_CONTACT and
+                    ACCOUNT_NAME in message and
+                    TO in message
+            ):
+                print(f"Запрос информации о контакте '{message[TO]}' "
+                      f"из списка контактов от клиента '{message[ACCOUNT_NAME]}'")
+                contact = self.database.get_contact(message[ACCOUNT_NAME], message[TO])
+                response = create_alert_response(ACCEPTED, contact.information)
+                send_message(client, response)
+                return
+            # Если клиент пытается добавить контакт в список контактов
+            elif (
+                    message[ACTION] == ADD_CONTACT and
+                    ACCOUNT_NAME in message and
+                    TO in message
+            ):
+                print(f"Запрос на добавление контакта '{message[TO]}' "
+                      f"в список контактов от клиента '{message[ACCOUNT_NAME]}'")
+                self.database.add_contact(message[ACCOUNT_NAME], message[TO])
+                response = create_alert_response(ACCEPTED, "Contact added")
+                send_message(client, response)
+                return
+            # Если клиент пытается удалить контакт из списка контактов
+            elif (
+                    message[ACTION] == DEL_CONTACT and
+                    ACCOUNT_NAME in message and
+                    TO in message
+            ):
+                print(f"Запрос на удаление контакта '{message[TO]}' "
+                      f"из списка контактов от клиента '{message[ACCOUNT_NAME]}'")
+                self.database.remove_contact(message[ACCOUNT_NAME], message[TO])
+                response = create_alert_response(ACCEPTED, "Contact removed")
+                send_message(client, response)
+                return
+            # Если клиент пытается обновить контакт в списке контактов
+            elif (
+                    message[ACTION] == UPDATE_CONTACT and
+                    ACCOUNT_NAME in message and
+                    TO in message and
+                    INFO in message
+            ):
+                print(f"Запрос на удаление контакта '{message[TO]}' "
+                      f"из списка контактов от клиента '{message[ACCOUNT_NAME]}'")
+                self.database.update_contact(message[ACCOUNT_NAME], message[TO], message[INFO])
+                response = create_alert_response(ACCEPTED, "Contact updated")
+                send_message(client, response)
+                return
         # Иначе отдаём Bad request
         else:
-            response = self.create_responce(WRONG_REQUEST, "Запрос некорректен.")
+            response = create_response(WRONG_REQUEST, "Запрос некорректен.")
             send_message(client, response)
             return
-
-    @staticmethod
-    def common_check_message(msg: dict) -> bool:
-        """
-        Базовая проверка сообщения
-        :param msg: словарь сообщения
-        :return: результат проверки
-        """
-
-        def check_length(msg: dict) -> bool:
-            if len(str(msg)) <= 640:
-                return True
-            return False
-
-        def check_action(msg: dict) -> bool:
-            if ACTION in msg and len(msg[ACTION]) <= 15:
-                return True
-            return False
-
-        def check_time(msg: dict) -> bool:
-            if TIME in msg and isinstance(msg[TIME], float):
-                return True
-            return False
-
-        if check_length(msg) and check_action(msg) and check_time(msg):
-            return True
-        return False
-
-    @log
-    def create_responce(self, responce: int, error=None) -> dict:
-        """
-        Формирование ответа клиенту
-        :param responce: код ответа
-        :param error: текст ошибки
-        :return: словарь ответа
-        """
-
-        if isinstance(error, str):
-            if responce in RESPONSE_CODES:
-                return {
-                    RESPONSE: responce,
-                    ERROR: error
-                }
-        else:
-            return {
-                RESPONSE: responce
-            }
-
-    @log
-    def create_alert_responce(self, responce: int, alert=None) -> dict:
-        """
-        Формирование ответа клиенту
-        :param responce: код ответа
-        :param alert: текст сообщения
-        :return: словарь ответа
-        """
-
-        if isinstance(alert, str):
-            if responce in RESPONSE_CODES:
-                return {
-                    RESPONSE: responce,
-                    ALERT: alert
-                }
-        else:
-            return {
-                RESPONSE: responce
-            }
 
 
 def main():

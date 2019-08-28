@@ -1,9 +1,11 @@
 import threading
 import time
 from socket import socket, AF_INET, SOCK_STREAM
-from jim.config_jim import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, MSG, RESPONSE_CODES, TO,
-                            FROM, MESSAGE, OK, QUIT, ERROR, GET_CONTACTS, ACCEPTED, ALERT, ADD_CONTACT, DEL_CONTACT,
-                            INFORMATION, UPDATE_CONTACT, GET_CONTACT)
+
+from client.utils.protocol import create_message, get_contact_list, add_contact, get_contact, remove_contact, \
+    update_contact, create_exit_message
+from jim.config_jim import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, RESPONSE_CODES, MESSAGE,
+                            OK, ERROR, ACCEPTED, ALERT)
 from client.utils.message import send_message, recieve_message
 from client.utils.parser import create_parser
 from client.utils.metaclasses import ClientVerifier
@@ -156,10 +158,10 @@ class Client(metaclass=ClientVerifier):
                 except IndexError:
                     print("Не задан получатель или текст сообщения")
                 else:
-                    message = self.create_message(to, text)
+                    message = create_message(to, self.__name, text)
                     self.send(message)
             elif message_str.startswith("get_contact_list"):
-                message = self.get_contact_list()
+                message = get_contact_list(self.name)
                 self.send(message)
             elif message_str.startswith("add_contact"):
                 message_list = message_str.split()
@@ -168,7 +170,7 @@ class Client(metaclass=ClientVerifier):
                 except IndexError:
                     print("Не задано имя контакта")
                 else:
-                    message = self.add_contact(contact)
+                    message = add_contact(self.name, contact)
                     self.send(message)
             elif message_str.startswith("get_contact"):
                 message_list = message_str.split()
@@ -177,7 +179,7 @@ class Client(metaclass=ClientVerifier):
                 except IndexError:
                     print("Не задано имя контакта")
                 else:
-                    message = self.get_contact(contact)
+                    message = get_contact(self.name, contact)
                     self.send(message)
             elif message_str.startswith("del_contact"):
                 message_list = message_str.split()
@@ -186,7 +188,7 @@ class Client(metaclass=ClientVerifier):
                 except IndexError:
                     print("Не задано имя контакта")
                 else:
-                    message = self.remove_contact(contact)
+                    message = remove_contact(self.name, contact)
                     self.send(message)
             elif message_str.startswith("update_contact"):
                 message_list = message_str.split()
@@ -196,13 +198,13 @@ class Client(metaclass=ClientVerifier):
                 except IndexError:
                     print("Не задано имя контакта")
                 else:
-                    message = self.update_contact(contact, information)
+                    message = update_contact(self.name, contact, information)
                     self.send(message)
             elif message_str == "help":
                 print("message <получатель> <текст> - отправить сообщение")
             elif message_str == "quit":
                 try:
-                    send_message(self.__socket, self.create_exit_message())
+                    send_message(self.__socket, create_exit_message(self.name))
                     # self.send(self.create_exit_message())
                 except:
                     pass
@@ -212,69 +214,6 @@ class Client(metaclass=ClientVerifier):
                 break
             else:
                 print("Неверная команда, для справки введите help")
-
-    # Функция создаёт словарь с сообщением о выходе
-    def create_exit_message(self):
-        return {
-            ACTION: QUIT,
-            TIME: time.time(),
-            ACCOUNT_NAME: self.__name
-        }
-
-    # Функция создаёт словарь с сообщением о получении списка контактов
-    def get_contact_list(self):
-        return {
-            ACTION: GET_CONTACTS,
-            TIME: time.time(),
-            ACCOUNT_NAME: self.__name
-        }
-
-    # Функция создаёт словарь с сообщением о получении информации о контакте
-    def get_contact(self, contact_name):
-        return {
-            ACTION: GET_CONTACT,
-            TIME: time.time(),
-            ACCOUNT_NAME: self.__name,
-            TO: contact_name
-        }
-
-    # Функция создаёт словарь с сообщением о получении списка контактов
-    def add_contact(self, contact_name):
-        return {
-            ACTION: ADD_CONTACT,
-            TIME: time.time(),
-            ACCOUNT_NAME: self.__name,
-            TO: contact_name
-        }
-
-    # Функция создаёт словарь с сообщением о получении списка контактов
-    def remove_contact(self, contact_name):
-        return {
-            ACTION: DEL_CONTACT,
-            TIME: time.time(),
-            ACCOUNT_NAME: self.__name,
-            TO: contact_name
-        }
-
-    # Функция создаёт словарь с сообщением о получении списка контактов
-    def update_contact(self, contact_name, information):
-        return {
-            ACTION: UPDATE_CONTACT,
-            TIME: time.time(),
-            ACCOUNT_NAME: self.__name,
-            TO: contact_name,
-            INFORMATION: information
-        }
-
-    # Функция создаёт текстовое сообщение
-    def create_message(self, message_to, text):
-        return {
-            ACTION: MSG,
-            TIME: time.time(),
-            TO: message_to,
-            FROM: self.__name,
-            MESSAGE: text
-        }
 
     def run(self):
         t = threading.Thread(target=self.read_messages)
@@ -304,7 +243,7 @@ def main():
             response = client.translate_message(response)  # разбираем сообщение от сервера
             if response[RESPONSE] == OK:
                 print("Соединение установлено.")
-                msg = client.get_contact_list()  # запрашиваем список контактов
+                msg = get_contact_list(client.name)  # запрашиваем список контактов
                 client.send(msg)  # отправляем сообщение серверу
                 response = client.recieve()  # получаем ответ от сервера
                 response = client.translate_message(response)  # разбираем сообщение от сервера

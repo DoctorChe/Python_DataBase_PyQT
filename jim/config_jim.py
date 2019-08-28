@@ -12,7 +12,7 @@ ALERT = "alert"  # информационное сообщение
 TO = "message_to"  # получатель
 FROM = "account_name"  # отправитель
 MESSAGE = "text"  # текст сообщения
-INFORMATION = "information"  # информация о контакте
+INFO = "info"  # информация о контакте
 
 # Значения (Методы протокола (actions))
 PRESENCE = "presence"  # присутствие. Сервисное сообщение для извещения сервера о присутствии клиента online
