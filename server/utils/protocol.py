@@ -1,4 +1,4 @@
-from jim.config_jim import RESPONSE_CODES, RESPONSE, ERROR, ALERT, ACTION, TIME
+from jim.config_jim import RESPONSE_CODES, RESPONSE, ERROR, ALERT, ACTION, TIME, MSG, MESSAGE, FROM, TO, DATA
 
 import logging
 # from server.utils import server_log_config
@@ -37,7 +37,17 @@ def common_check_message(msg: dict) -> bool:
 
 
 @log
-def create_response(response: int, error=None) -> dict:
+def create_response(request: dict, response_code: int, data=None) -> dict:
+    return {
+        ACTION: request[ACTION],
+        TIME: request[TIME],
+        RESPONSE: response_code,
+        DATA: data
+    }
+
+
+@log
+def create_error_response(response: int, error=None) -> dict:
     """
     Формирование ответа клиенту
     :param response: код ответа

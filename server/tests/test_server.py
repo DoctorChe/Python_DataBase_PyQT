@@ -28,7 +28,7 @@ class TestServerInstance(unittest.TestCase):
 #             TIME: time.time()
 #         }
 #         server = Server((DEFAULT_SERVER_IP, DEFAULT_PORT), SERVER_DATABASE)
-#         # response = server.create_response(msg)
+#         # response = server.create_error_response(msg)
 #         response = server.process_client_message(msg)
 #         self.assertEqual(response, {RESPONSE: 400, ERROR: 'Неправильный запрос/JSON объект'})
 #
@@ -39,7 +39,7 @@ class TestServerInstance(unittest.TestCase):
 #             TIME: 1000.10
 #         }
 #         server = Server((DEFAULT_SERVER_IP, DEFAULT_PORT), SERVER_DATABASE)
-#         response = server.create_response(msg)
+#         response = server.create_error_response(msg)
 #         self.assertEqual(response, {RESPONSE: 400, ERROR: 'Неправильный запрос/JSON объект'})
 #
 #     # нет ключа time
@@ -48,7 +48,7 @@ class TestServerInstance(unittest.TestCase):
 #             ACTION: PRESENCE
 #         }
 #         server = Server((DEFAULT_SERVER_IP, DEFAULT_PORT), SERVER_DATABASE)
-#         response = server.create_response(msg)
+#         response = server.create_error_response(msg)
 #         self.assertEqual(response, {RESPONSE: 400, ERROR: 'Неправильный запрос/JSON объект'})
 #
 #     # неправильное время
@@ -58,7 +58,7 @@ class TestServerInstance(unittest.TestCase):
 #             TIME: "test_time"
 #         }
 #         server = Server((DEFAULT_SERVER_IP, DEFAULT_PORT), SERVER_DATABASE)
-#         response = server.create_response(msg)
+#         response = server.create_error_response(msg)
 #         self.assertEqual(response, {RESPONSE: 400, ERROR: 'Неправильный запрос/JSON объект'})
 #
 #     # правильное время
@@ -68,7 +68,7 @@ class TestServerInstance(unittest.TestCase):
 #             TIME: 1000.10,
 #         }
 #         server = Server((DEFAULT_SERVER_IP, DEFAULT_PORT), SERVER_DATABASE)
-#         response = server.create_response(msg)
+#         response = server.create_error_response(msg)
 #         self.assertEqual(response, {'response': 200})
 
 
