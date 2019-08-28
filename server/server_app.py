@@ -68,6 +68,24 @@ class Server(metaclass=ServerVerifier):
             logger.info(f"Установлено соедение с клиентом {client_address}")
             print(f"Установлено соедение с клиентом {str(client_address)}")
 
+    def read(self, sock):
+        try:
+            self.process_client_message(recieve_message(sock), sock)
+        except Exception:
+            logger.info(f"Клиент {sock.getpeername()} отключился от сервера.")
+            self.clients.remove(sock)
+
+    def write(self, send_data_lst, message):
+        try:
+            self.process_message(message, send_data_lst)
+        except TypeError:
+            logger.info(f"Связь с клиентом с именем {message[TO]} была потеряна")
+            try:
+                self.clients.remove(self.names[message[TO]])
+            except ValueError:
+                pass
+            del self.names[message[TO]]
+
     def run(self):
         self.__new_listen_socket()  # Инициализация сокета
 
@@ -95,25 +113,11 @@ class Server(metaclass=ServerVerifier):
             # Принимаем сообщения и если ошибка, исключаем клиента
             if recv_data_lst:
                 for client_with_message in recv_data_lst:
-                    try:
-                        self.process_client_message(recieve_message(client_with_message), client_with_message)
-                    except:
-                        logger.info(f"Клиент {client_with_message.getpeername()} отключился от сервера.")
-                        self.clients.remove(client_with_message)
+                    self.read(client_with_message)
 
             # Если есть сообщения, обрабатываем каждое
             for message in self.messages:
-                # self.process_message(message, send_data_lst)
-                try:
-                    self.process_message(message, send_data_lst)
-                # except:
-                except TypeError:
-                    logger.info(f"Связь с клиентом с именем {message[TO]} была потеряна")
-                    try:
-                        self.clients.remove(self.names[message[TO]])
-                    except ValueError:
-                        pass
-                    del self.names[message[TO]]
+                self.write(send_data_lst, message)
             self.messages.clear()
 
     # Функция адресной отправки сообщения определённому клиенту. Принимает словарь сообщение, список зарегистрированых
