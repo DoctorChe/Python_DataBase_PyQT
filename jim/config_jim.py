@@ -23,11 +23,14 @@ QUIT = "quit"  # отключение от сервера
 AUTHENTICATE = "authenticate"  # авторизация на сервере
 JOIN = "join"  # присоединиться к чату
 LEAVE = "leave"  # покинуть чат
+
 GET_CONTACTS = "get_contacts"  # получить список контактов
 GET_CONTACT = "get_contact"  # получить информацию о контакте
 ADD_CONTACT = "add_contact"  # добавить контакт в список контактов
 DEL_CONTACT = "del_contact"  # удалить контакт из списка контактов
 UPDATE_CONTACT = "update_contact"  # обновить контакт в списке контактов
+
+ECHO = "echo"  # эхо-сообщение
 
 # Коды ответов (будут дополняться)
 # 1xx — информационные сообщения

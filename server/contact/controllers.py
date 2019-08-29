@@ -1,4 +1,4 @@
-from jim.config_jim import MESSAGE, OK, CONFLICT
+from jim.config_jim import MESSAGE, OK, CONFLICT, ACCEPTED
 from server.auth.models import User
 from server.contact.models import Contact
 from server.utils.protocol import create_error_response, create_alert_response
@@ -23,11 +23,11 @@ def get_contact_controller(request):
             contact_exist = session.query(Contact).filter_by(user_id=user.id).filter_by(
                 name=contact.name).first()
             if contact_exist:
-                response = create_alert_response(OK, f"Name: {contact_exist.name} info:{contact_exist.info}")
+                response = create_alert_response(ACCEPTED, f"Name: {contact_exist.name} info:{contact_exist.info}")
             else:
-                response = create_alert_response(OK, "Такого контакта не существует в контакт листе")
+                response = create_alert_response(ACCEPTED, "Такого контакта не существует в контакт листе")
         else:
-            response = create_alert_response(OK, "Такого пользователя или контакта не существует")
+            response = create_alert_response(ACCEPTED, "Такого пользователя или контакта не существует")
         session.commit()
         session.close()
     return response
@@ -45,9 +45,9 @@ def get_contacts_controller(request):
             for contact in contacts:
                 contact_list.append(contact.name)
             if contact_list:
-                response = create_alert_response(OK, str(contact_list))
+                response = create_alert_response(ACCEPTED, str(contact_list))
             else:
-                response = create_alert_response(OK, "Контакт лист пуст")
+                response = create_alert_response(ACCEPTED, "Контакт лист пуст")
     else:
         print("Не задано имя пользователя")
         response = create_error_response(CONFLICT, "Не задано имя пользователя")
@@ -77,8 +77,9 @@ def add_contact_controller(request):
                 # response = create_alert_response(OK, contact_exist.name)
                 print(f"Contact '{contact_name}' already exists at {user_name}'s contact list")
                 response = create_alert_response(
-                    OK,
-                    f"Contact '{contact_name}' already exists at {user_name}'s contact list"
+                    ACCEPTED,
+                    # f"Contact '{contact_name}' already exists at {user_name}'s contact list"
+                    "Contact already exists"
                 )
             else:
                 new_contact = Contact(name=contact.name, user_id=user.id, info=info)
@@ -86,8 +87,9 @@ def add_contact_controller(request):
                 session.commit()
                 print(f"Contact '{contact_name}' added to {user_name}'s contact list")
                 response = create_alert_response(
-                    OK,
-                    f"Contact '{contact_name}' added to {user_name}'s contact list"
+                    ACCEPTED,
+                    # f"Contact '{contact_name}' added to {user_name}'s contact list"
+                    "Contact added"
                 )
         session.commit()
         session.close()
@@ -116,14 +118,16 @@ def remove_contact_controller(request):
                 session.commit()
                 print(f"Contact '{contact_name}' removed from {user_name}'s contact list")
                 response = create_alert_response(
-                    OK,
-                    f"Contact '{contact_name}' removed from {user_name}'s contact list"
+                    ACCEPTED,
+                    # f"Contact '{contact_name}' removed from {user_name}'s contact list"
+                    "Contact removed"
                 )
             else:
                 print(f"Contact '{contact_name}' does not exist at {user_name}'s contact list")
                 response = create_alert_response(
-                    OK,
-                    f"Contact '{contact_name}' does not exist at {user_name}'s contact list"
+                    ACCEPTED,
+                    # f"Contact '{contact_name}' does not exist at {user_name}'s contact list"
+                    "Contact does not exist"
                 )
         else:
             response = create_alert_response(OK, "Такого пользователя или контакта не существует")
@@ -155,14 +159,16 @@ def update_contact_controller(request):
                 contact_exist.info = info
                 session.commit()
                 response = create_alert_response(
-                    OK,
-                    f"Contact '{contact_name}' updated at {user_name}'s contact list"
+                    ACCEPTED,
+                    # f"Contact '{contact_name}' updated at {user_name}'s contact list"
+                    "Contact updated"
                 )
             else:
                 print(f"Contact '{contact_name}' does not exist at {user_name}'s contact list")
                 response = create_alert_response(
-                    OK,
-                    f"Contact '{contact_name}' does not exist at {user_name}'s contact list"
+                    ACCEPTED,
+                    # f"Contact '{contact_name}' does not exist at {user_name}'s contact list"
+                    "Contact does not exist"
                 )
 
         session.close()

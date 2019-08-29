@@ -16,9 +16,7 @@ def handle_process_client_message(message: dict):
     logger.debug(f"Разбор сообщения от клиента : {message}")
     if common_check_message(message):
         action_name = message.get(ACTION)
-        print(f"action_name = {action_name}")
         controller = resolve(action_name)
-        print(f"controller = {controller}")
         if controller:
             try:
                 logger.debug(f"Controller {action_name} resolved with request: {message}")
@@ -76,6 +74,7 @@ def handle_process_client_message(message: dict):
         #     #     print(f"Не найден клиент с именем '{message[TO]}'")
         #     #     send_message(client, response)
         #     # return
+
         # Если клиент выходит
         # elif (
         #         message[ACTION] == QUIT and
@@ -87,55 +86,6 @@ def handle_process_client_message(message: dict):
         #     self.names[message[ACCOUNT_NAME]].close()
         #     del self.names[message[ACCOUNT_NAME]]
         #     return
-        # # Если клиент запрашивает список контактов
-        # elif (
-        #         message[ACTION] == GET_CONTACTS and
-        #         ACCOUNT_NAME in message
-        # ):
-        #     print(f"Запрос списка контактов от клиента '{message[ACCOUNT_NAME]}'")
-        #     contact_list = database.get_contacts(message[ACCOUNT_NAME])
-        #     response = create_alert_response(ACCEPTED, str(contact_list))
-        # # Если клиент запрашивает информацию о контакте из списка контактов
-        # elif (
-        #         message[ACTION] == GET_CONTACT and
-        #         ACCOUNT_NAME in message and
-        #         TO in message
-        # ):
-        #     print(f"Запрос информации о контакте '{message[TO]}' "
-        #           f"из списка контактов от клиента '{message[ACCOUNT_NAME]}'")
-        #     contact = database.get_contact(message[ACCOUNT_NAME], message[TO])
-        #     response = create_alert_response(ACCEPTED, contact.information)
-        # # Если клиент пытается добавить контакт в список контактов
-        # elif (
-        #         message[ACTION] == ADD_CONTACT and
-        #         ACCOUNT_NAME in message and
-        #         TO in message
-        # ):
-        #     print(f"Запрос на добавление контакта '{message[TO]}' "
-        #           f"в список контактов от клиента '{message[ACCOUNT_NAME]}'")
-        #     database.add_contact(message[ACCOUNT_NAME], message[TO])
-        #     response = create_alert_response(ACCEPTED, "Contact added")
-        # # Если клиент пытается удалить контакт из списка контактов
-        # elif (
-        #         message[ACTION] == DEL_CONTACT and
-        #         ACCOUNT_NAME in message and
-        #         TO in message
-        # ):
-        #     print(f"Запрос на удаление контакта '{message[TO]}' "
-        #           f"из списка контактов от клиента '{message[ACCOUNT_NAME]}'")
-        #     database.remove_contact(message[ACCOUNT_NAME], message[TO])
-        #     response = create_alert_response(ACCEPTED, "Contact removed")
-        # # Если клиент пытается обновить контакт в списке контактов
-        # elif (
-        #         message[ACTION] == UPDATE_CONTACT and
-        #         ACCOUNT_NAME in message and
-        #         TO in message and
-        #         INFO in message
-        # ):
-        #     print(f"Запрос на удаление контакта '{message[TO]}' "
-        #           f"из списка контактов от клиента '{message[ACCOUNT_NAME]}'")
-        #     database.update_contact(message[ACCOUNT_NAME], message[TO], message[INFO])
-        #     response = create_alert_response(ACCEPTED, "Contact updated")
     # Иначе отдаём Bad request
     else:
         logging.error(f"Запрос некорректен: {message}")

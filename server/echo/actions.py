@@ -1,3 +1,4 @@
+from jim.config_jim import ACTION, ECHO
 from .controllers import (
     echo_controller,
     get_messages_controller,
@@ -6,8 +7,8 @@ from .controllers import (
 )
 
 action_names = [
-    {"action": "echo", "controller": echo_controller},
-    {"action": "get_all_messages", "controller": get_messages_controller},
-    {"action": "update_message", "controller": update_message_controller},
-    {"action": "delete_message", "controller": delete_message_controller},
+    {ACTION: ECHO, "controller": echo_controller},
+    {ACTION: "get_all_messages", "controller": get_messages_controller},
+    {ACTION: "update_message", "controller": update_message_controller},
+    {ACTION: "delete_message", "controller": delete_message_controller},
 ]

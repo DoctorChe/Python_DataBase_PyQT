@@ -4,7 +4,7 @@ from socket import socket, AF_INET, SOCK_STREAM
 
 from client.utils.protocol import create_message
 from jim.config_jim import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, RESPONSE_CODES, MESSAGE,
-                            OK, ERROR, ALERT)
+                            OK, ERROR, ALERT, ACCEPTED, GET_CONTACTS)
 from client.utils.message import send_message, recieve_message
 from client.utils.parser import create_parser
 from client.utils.metaclasses import ClientVerifier
@@ -196,30 +196,23 @@ def main():
             account_name
     ) as client:
         if client.connect():
-            # msg = client.create_presence(status)  # формируем presence-сообщение
-            # msg = client.create_presence()  # формируем presence-сообщение
-            # msg = user_login("user_login", account_name)  # формируем login_user сообщение
-            # client.send(msg)  # отправляем сообщение серверу
-            message = create_message("user_login", account_name)  # формируем login_user сообщение
-            print(f"login message = {message}")
+            message = create_message(PRESENCE, account_name)  # формируем presense сообщение
             client.send(message)  # отправляем сообщение серверу
             response = client.recieve()  # получаем ответ от сервера
-            print(f"response = {response}")
             response = client.translate_message(response)  # разбираем сообщение от сервера
             if response[RESPONSE] == OK:
-                #     print("Соединение установлено.")
-                #     msg = get_contact_list(client.name)  # запрашиваем список контактов
-                #     client.send(msg)  # отправляем сообщение серверу
-                #     response = client.recieve()  # получаем ответ от сервера
-                #     response = client.translate_message(response)  # разбираем сообщение от сервера
-                #     if response[RESPONSE] == ACCEPTED:
-                #         if ALERT in response:
-                #             print(f"Список контактов:\n{response[ALERT]}")
-                #         else:
-                #             print("Список контактов пуст")
-                #     print("Формат сообщения:\n"
-                #           "message <получатель> <текст>")
-                #     client.run()
+                print("Соединение установлено.")
+                message = create_message(GET_CONTACTS, account_name)  # запрашиваем список контактов
+                client.send(message)  # отправляем сообщение серверу
+                response = client.recieve()  # получаем ответ от сервера
+                response = client.translate_message(response)  # разбираем сообщение от сервера
+                if response[RESPONSE] == ACCEPTED:
+                    if ALERT in response:
+                        print(f"Список контактов:\n{response[ALERT]}")
+                    else:
+                        print("Список контактов пуст")
+                # print("Формат сообщения:\n"
+                #       "message <получатель> <текст>")
                 client.run()
 
 

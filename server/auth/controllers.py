@@ -1,12 +1,11 @@
-from jim.config_jim import MESSAGE, OK, CONFLICT
+from jim.config_jim import MESSAGE, OK
 from server.auth.models import User
-from server.utils.protocol import create_response, create_error_response, create_alert_response
+from server.utils.protocol import create_alert_response
 from server.utils.server_db import Session
 
 
 def user_login_controller(request):
     name = request[MESSAGE]
-    print(f"name = {name}")
     session = Session()
     # user = session.query(User).filter_by(name=name).first()
     result = session.query(User).filter_by(name=name)
@@ -14,7 +13,6 @@ def user_login_controller(request):
     # Если имя пользователя уже присутствует в таблице, обновляем время последнего входа
     if result.count():
         user = result.first()
-        print(f"user = {user}")
         # user.last_login = datetime.datetime.now()
     # Если нету, то создаздаём нового пользователя
     else:
