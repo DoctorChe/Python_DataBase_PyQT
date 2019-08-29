@@ -134,16 +134,17 @@ class Client(metaclass=ClientVerifier):
     def read_messages(self):
         """
         Клиент читает входящие сообщения в бесконечном цикле
-        :param client: сокет клиента
         """
         while True:
             message = self.recieve()  # получаем ответ от сервера
+            # print(f"Принято сообщение: {message}")
             if RESPONSE in message:
                 if ERROR in message:
                     print(f"Ошибка {message[RESPONSE]} - {message[ERROR]}")
                 if ALERT in message:
                     print(message[ALERT])
-            elif MESSAGE in message:
+            # elif MESSAGE in message:
+            if MESSAGE in message:
                 print(message[MESSAGE])  # там должно быть сообщение
 
     def write_messages(self):
@@ -159,7 +160,9 @@ class Client(metaclass=ClientVerifier):
                     print("Не задан получатель или текст сообщения")
                 else:
                     message = create_message(to, self.__name, text)
+                    # print(f"Сформировано сообщение: {message}")
                     self.send(message)
+                    # print(f"Отослано сообщение: {message}")
             elif message_str.startswith("get_contact_list"):
                 message = get_contact_list(self.name)
                 self.send(message)
@@ -237,24 +240,25 @@ def main():
             account_name
     ) as client:
         if client.connect():
-            msg = client.create_presence(status)  # формируем presence-сообщение
-            client.send(msg)  # отправляем сообщение серверу
-            response = client.recieve()  # получаем ответ от сервера
-            response = client.translate_message(response)  # разбираем сообщение от сервера
-            if response[RESPONSE] == OK:
-                print("Соединение установлено.")
-                msg = get_contact_list(client.name)  # запрашиваем список контактов
-                client.send(msg)  # отправляем сообщение серверу
-                response = client.recieve()  # получаем ответ от сервера
-                response = client.translate_message(response)  # разбираем сообщение от сервера
-                if response[RESPONSE] == ACCEPTED:
-                    if ALERT in response:
-                        print(f"Список контактов:\n{response[ALERT]}")
-                    else:
-                        print("Список контактов пуст")
-                print("Формат сообщения:\n"
-                      "message <получатель> <текст>")
-                client.run()
+            # msg = client.create_presence(status)  # формируем presence-сообщение
+            # client.send(msg)  # отправляем сообщение серверу
+            # response = client.recieve()  # получаем ответ от сервера
+            # response = client.translate_message(response)  # разбираем сообщение от сервера
+            # if response[RESPONSE] == OK:
+            #     print("Соединение установлено.")
+            #     msg = get_contact_list(client.name)  # запрашиваем список контактов
+            #     client.send(msg)  # отправляем сообщение серверу
+            #     response = client.recieve()  # получаем ответ от сервера
+            #     response = client.translate_message(response)  # разбираем сообщение от сервера
+            #     if response[RESPONSE] == ACCEPTED:
+            #         if ALERT in response:
+            #             print(f"Список контактов:\n{response[ALERT]}")
+            #         else:
+            #             print("Список контактов пуст")
+            #     print("Формат сообщения:\n"
+            #           "message <получатель> <текст>")
+            #     client.run()
+            client.run()
 
 
 if __name__ == "__main__":

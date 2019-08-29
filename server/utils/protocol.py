@@ -37,12 +37,12 @@ def common_check_message(msg: dict) -> bool:
 
 
 @log
-def create_response(request: dict, response_code: int, data=None) -> dict:
+def create_response(request: dict, response_code: int, msg=None) -> dict:
     return {
         ACTION: request[ACTION],
         TIME: request[TIME],
         RESPONSE: response_code,
-        DATA: data
+        MESSAGE: msg
     }
 
 
