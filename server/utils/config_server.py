@@ -1,5 +1,4 @@
 import os
-import sys
 
 ENCODING = "utf-8"  # кодировка
 MSG_SIZE = 1024  # размер сообщения
@@ -14,12 +13,8 @@ SERVER_DATABASE = "sqlite:///server/db/server_db.sqlite3"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 PROGRAM = "server messenger"
-VERSION = "0.7"
+VERSION = "0.8"
 
 INSTALLED_MODULES = (
-    # 'auth',
     'echo',
-    # 'messenger',
-    # 'serverdate',
-    # 'servererrors',
 )

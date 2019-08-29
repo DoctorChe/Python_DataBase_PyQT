@@ -1,6 +1,5 @@
-from jim.config_jim import ACTION, MSG, TO, FROM, MESSAGE, OK, GET_CONTACTS, ACCOUNT_NAME, ACCEPTED, GET_CONTACT, \
-    ADD_CONTACT, DEL_CONTACT, UPDATE_CONTACT, INFO, WRONG_REQUEST, SERVER_ERROR, NOT_FOUND
-from server.utils.protocol import common_check_message, create_response, create_alert_response, create_error_response
+from jim.config_jim import ACTION, WRONG_REQUEST, SERVER_ERROR, NOT_FOUND
+from server.utils.protocol import common_check_message, create_error_response
 from server.utils.resolvers import resolve
 
 import logging
@@ -13,13 +12,10 @@ log = Log(logger)
 
 
 # Обработчик сообщений от клиентов, принимает словарь - сообщение от клиента, проверяет корректность, формирует ответ
-# def handle_process_client_message(self, message: dict, client: socket):
 def handle_process_client_message(message: dict):
     logger.debug(f"Разбор сообщения от клиента : {message}")
     # Если это сообщение о присутствии, принимаем и отвечаем
-    # print(f"Сообщение: {message} передано на валидацию")
     if common_check_message(message):
-        # print(f"Сообщение: {message} прошло валидацию")
         action_name = message.get(ACTION)
         print(f"action_name = {action_name}")
         controller = resolve(action_name)
@@ -100,8 +96,6 @@ def handle_process_client_message(message: dict):
         #     print(f"Запрос списка контактов от клиента '{message[ACCOUNT_NAME]}'")
         #     contact_list = database.get_contacts(message[ACCOUNT_NAME])
         #     response = create_alert_response(ACCEPTED, str(contact_list))
-        #     # send_message(client, response)
-        #     # return
         # # Если клиент запрашивает информацию о контакте из списка контактов
         # elif (
         #         message[ACTION] == GET_CONTACT and
@@ -112,8 +106,6 @@ def handle_process_client_message(message: dict):
         #           f"из списка контактов от клиента '{message[ACCOUNT_NAME]}'")
         #     contact = database.get_contact(message[ACCOUNT_NAME], message[TO])
         #     response = create_alert_response(ACCEPTED, contact.information)
-        #     # send_message(client, response)
-        #     # return
         # # Если клиент пытается добавить контакт в список контактов
         # elif (
         #         message[ACTION] == ADD_CONTACT and
@@ -124,8 +116,6 @@ def handle_process_client_message(message: dict):
         #           f"в список контактов от клиента '{message[ACCOUNT_NAME]}'")
         #     database.add_contact(message[ACCOUNT_NAME], message[TO])
         #     response = create_alert_response(ACCEPTED, "Contact added")
-        #     # send_message(client, response)
-        #     # return
         # # Если клиент пытается удалить контакт из списка контактов
         # elif (
         #         message[ACTION] == DEL_CONTACT and
@@ -136,8 +126,6 @@ def handle_process_client_message(message: dict):
         #           f"из списка контактов от клиента '{message[ACCOUNT_NAME]}'")
         #     database.remove_contact(message[ACCOUNT_NAME], message[TO])
         #     response = create_alert_response(ACCEPTED, "Contact removed")
-        #     # send_message(client, response)
-        #     # return
         # # Если клиент пытается обновить контакт в списке контактов
         # elif (
         #         message[ACTION] == UPDATE_CONTACT and
@@ -149,13 +137,9 @@ def handle_process_client_message(message: dict):
         #           f"из списка контактов от клиента '{message[ACCOUNT_NAME]}'")
         #     database.update_contact(message[ACCOUNT_NAME], message[TO], message[INFO])
         #     response = create_alert_response(ACCEPTED, "Contact updated")
-        #     # send_message(client, response)
-        #     # return
     # Иначе отдаём Bad request
     else:
         logging.error(f"Запрос некорректен: {message}")
         # response = create_response(message, WRONG_REQUEST, "Запрос некорректен.")
         response = create_error_response(WRONG_REQUEST, "Запрос некорректен.")
-        # send_message(client, response)
-        # return
     return response

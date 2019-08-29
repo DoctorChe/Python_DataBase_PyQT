@@ -5,4 +5,4 @@ DEFAULT_CLIENT_IP = "localhost"
 DEFAULT_PORT = 7777
 
 PROGRAM = "client messenger"
-VERSION = "0.7"
+VERSION = "0.8"

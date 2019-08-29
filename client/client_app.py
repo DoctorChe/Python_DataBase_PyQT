@@ -137,7 +137,6 @@ class Client(metaclass=ClientVerifier):
         """
         while True:
             message = self.recieve()  # получаем ответ от сервера
-            # print(f"Принято сообщение: {message}")
             if RESPONSE in message:
                 if ERROR in message:
                     print(f"Ошибка {message[RESPONSE]} - {message[ERROR]}")

@@ -5,7 +5,7 @@ from .controllers import (
     delete_message_controller
 )
 
-actionnames = [
+action_names = [
     {"action": "echo", "controller": echo_controller},
     {"action": "get_all_messages", "controller": get_messages_controller},
     {"action": "update_message", "controller": update_message_controller},

@@ -22,7 +22,8 @@ def common_check_message(msg: dict) -> bool:
         return False
 
     def check_action(msg: dict) -> bool:
-        if ACTION in msg and len(msg[ACTION]) <= 15:
+        # if ACTION in msg and len(msg[ACTION]) <= 15:
+        if ACTION in msg and len(msg[ACTION]) <= 25:
             return True
         return False
 

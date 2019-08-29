@@ -10,7 +10,6 @@ from server.utils.message import send_message, recieve_message
 from server.utils.parser import create_parser
 from server.utils.metaclasses import ServerVerifier
 from server.utils.descriptors import CheckedHost
-# from server.utils.server_db import ServerStorage
 from server.utils.server_db import Base
 
 import logging
@@ -27,14 +26,12 @@ class Server(metaclass=ServerVerifier):
 
     __host = CheckedHost()
 
-    # def __init__(self, host: Tuple[str, int], database):
     def __init__(self, host: Tuple[str, int], handler):
         self.__host = host
         self.__server = None
         self.clients = []  # список подключенных клиентов
         self.names = None  # Словарь содержащий имена и соответствующие им сокеты
         self.messages = []  # Список сообщений на отправку
-        # self.database = database  # База данных сервера
         self._handler = handler
 
         # super().__init__()  # Конструктор предка
@@ -75,25 +72,19 @@ class Server(metaclass=ServerVerifier):
     def read(self, sock):
         try:
             message = recieve_message(sock)
-            # print(f"Принято сообщение: {message}")
         except Exception:
             logger.info(f"Клиент {sock.getpeername()} отключился от сервера.")
             self.clients.remove(sock)
         else:
             if message:
-                # self.handle_process_client_message(message, sock)
-                # TODO: перенести разбор сообщения в метод run
                 self.messages.append(message)
-                # print(f"Сообщение: {message} добавлено в список сообщений")
 
     # def write(self, send_data_lst, message):
     def write(self, sock, message):
         try:
             # self.process_message(message, send_data_lst)
             # TODO: сделать проверку: зарегистрирован ли клиент на сервере
-            # print(f"Отсылка сообщения: {message} Клиенту: {sock}")
             send_message(sock, message)
-            # print(f"Сообщение: {message} отослано клиенту: {sock}")
         except TypeError:
             logger.info(f"Связь с клиентом с именем {message[TO]} была потеряна")
             try:
@@ -129,7 +120,6 @@ class Server(metaclass=ServerVerifier):
             # Принимаем сообщения и если ошибка, исключаем клиента
             if recv_data_list:
                 for client_with_message in recv_data_list:
-                    # self.read(client_with_message)
                     r_thread = threading.Thread(
                         target=self.read, args=(client_with_message, )
                     )
@@ -137,21 +127,13 @@ class Server(metaclass=ServerVerifier):
 
             # Если есть сообщения, обрабатываем каждое
             if self.messages:
-                # for message in self.messages:
                 message = self.messages.pop()
-                # print(f"Сообщение: {message} извлечено из списка сообщений")
-                # response = handle_process_client_message(message)
                 response = self._handler(message)
-                # print(f"Сформирован ответ: {response} на сообщение {message}")
                 for client_waiting_message in send_data_list:
-                    # self.write(send_data_list, message)
-                    # self.write(client_waiting_message, response)
                     w_thread = threading.Thread(
-                        # target=self.write, args=(send_data_list, message)
                         target=self.write, args=(client_waiting_message, response)
                     )
                     w_thread.start()
-                # self.messages.clear()
 
     # Функция адресной отправки сообщения определённому клиенту. Принимает словарь сообщение, список зарегистрированых
     # пользователей и слушающие сокеты. Ничего не возвращает.
@@ -175,18 +157,12 @@ class Server(metaclass=ServerVerifier):
 def main():
     parser = create_parser()
 
-    # database = ServerStorage()  # Инициализация базы данных
-
-    # with Server((parser.parse_args().addr, parser.parse_args().port), database) as server:
-
     if parser.parse_args().migrate:
         module_name_list = [f"{item}.models" for item in INSTALLED_MODULES]
-        # print(f"BASE_DIR = {BASE_DIR}")
         module_path_list = (os.path.join(BASE_DIR, item, "models.py") for item in INSTALLED_MODULES)
         for index, path in enumerate(module_path_list):
             if os.path.exists(path):
                 __import__(module_name_list[index])
-            # print(f"module_name_list = {module_name_list}")
         Base.metadata.create_all()
 
     else:
