@@ -14,7 +14,6 @@ log = Log(logger)
 # Обработчик сообщений от клиентов, принимает словарь - сообщение от клиента, проверяет корректность, формирует ответ
 def handle_process_client_message(message: dict):
     logger.debug(f"Разбор сообщения от клиента : {message}")
-    # Если это сообщение о присутствии, принимаем и отвечаем
     if common_check_message(message):
         action_name = message.get(ACTION)
         print(f"action_name = {action_name}")

@@ -87,3 +87,13 @@ def update_contact(name, contact_name, info):
         TO: contact_name,
         INFO: info
     }
+
+
+# # Функция создаёт словарь с сообщением для обновления информации о контакте
+# def user_login(action, name):
+#     return {
+#         ACTION: action,
+#         TIME: time.time(),
+#         # ACCOUNT_NAME: name
+#         MESSAGE: name
+#     }

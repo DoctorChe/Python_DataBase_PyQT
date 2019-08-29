@@ -16,5 +16,7 @@ PROGRAM = "server messenger"
 VERSION = "0.8"
 
 INSTALLED_MODULES = (
-    'echo',
+    "auth",
+    "contact",
+    "echo",
 )

@@ -2,10 +2,9 @@ import threading
 import time
 from socket import socket, AF_INET, SOCK_STREAM
 
-from client.utils.protocol import create_message, get_contact_list, add_contact, get_contact, remove_contact, \
-    update_contact, create_exit_message, create_echo_message
+from client.utils.protocol import create_message
 from jim.config_jim import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, RESPONSE_CODES, MESSAGE,
-                            OK, ERROR, ACCEPTED, ALERT)
+                            OK, ERROR, ALERT)
 from client.utils.message import send_message, recieve_message
 from client.utils.parser import create_parser
 from client.utils.metaclasses import ClientVerifier
@@ -160,58 +159,6 @@ class Client(metaclass=ClientVerifier):
             message = create_message(action, text)
             self.send(message)
 
-            # if message_str.startswith("echo"):
-            #     message_list = message_str.split()
-            #     try:
-            #         action = message_list[0]
-            #         text = " ".join(message_list[1:])
-            #     except IndexError:
-            #         print("Не задан текст сообщения")
-            #     else:
-            #         message = create_echo_message(action, text)
-            #         # print(f"Сформировано сообщение: {message}")
-            #         self.send(message)
-            #         # print(f"Отослано сообщение: {message}")
-            # elif message_str.startswith("get_contact_list"):
-            #     message = get_contact_list(self.name)
-            #     self.send(message)
-            # elif message_str.startswith("add_contact"):
-            #     message_list = message_str.split()
-            #     try:
-            #         contact = message_list[1]
-            #     except IndexError:
-            #         print("Не задано имя контакта")
-            #     else:
-            #         message = add_contact(self.name, contact)
-            #         self.send(message)
-            # elif message_str.startswith("get_contact"):
-            #     message_list = message_str.split()
-            #     try:
-            #         contact = message_list[1]
-            #     except IndexError:
-            #         print("Не задано имя контакта")
-            #     else:
-            #         message = get_contact(self.name, contact)
-            #         self.send(message)
-            # elif message_str.startswith("del_contact"):
-            #     message_list = message_str.split()
-            #     try:
-            #         contact = message_list[1]
-            #     except IndexError:
-            #         print("Не задано имя контакта")
-            #     else:
-            #         message = remove_contact(self.name, contact)
-            #         self.send(message)
-            # elif message_str.startswith("update_contact"):
-            #     message_list = message_str.split()
-            #     try:
-            #         contact = message_list[1]
-            #         information = ' '.join(message_list[2:])
-            #     except IndexError:
-            #         print("Не задано имя контакта")
-            #     else:
-            #         message = update_contact(self.name, contact, information)
-            #         self.send(message)
             # elif message_str == "help":
             #     print("message <получатель> <текст> - отправить сообщение")
             # elif message_str == "quit":
@@ -250,24 +197,30 @@ def main():
     ) as client:
         if client.connect():
             # msg = client.create_presence(status)  # формируем presence-сообщение
+            # msg = client.create_presence()  # формируем presence-сообщение
+            # msg = user_login("user_login", account_name)  # формируем login_user сообщение
             # client.send(msg)  # отправляем сообщение серверу
-            # response = client.recieve()  # получаем ответ от сервера
-            # response = client.translate_message(response)  # разбираем сообщение от сервера
-            # if response[RESPONSE] == OK:
-            #     print("Соединение установлено.")
-            #     msg = get_contact_list(client.name)  # запрашиваем список контактов
-            #     client.send(msg)  # отправляем сообщение серверу
-            #     response = client.recieve()  # получаем ответ от сервера
-            #     response = client.translate_message(response)  # разбираем сообщение от сервера
-            #     if response[RESPONSE] == ACCEPTED:
-            #         if ALERT in response:
-            #             print(f"Список контактов:\n{response[ALERT]}")
-            #         else:
-            #             print("Список контактов пуст")
-            #     print("Формат сообщения:\n"
-            #           "message <получатель> <текст>")
-            #     client.run()
-            client.run()
+            message = create_message("user_login", account_name)  # формируем login_user сообщение
+            print(f"login message = {message}")
+            client.send(message)  # отправляем сообщение серверу
+            response = client.recieve()  # получаем ответ от сервера
+            print(f"response = {response}")
+            response = client.translate_message(response)  # разбираем сообщение от сервера
+            if response[RESPONSE] == OK:
+                #     print("Соединение установлено.")
+                #     msg = get_contact_list(client.name)  # запрашиваем список контактов
+                #     client.send(msg)  # отправляем сообщение серверу
+                #     response = client.recieve()  # получаем ответ от сервера
+                #     response = client.translate_message(response)  # разбираем сообщение от сервера
+                #     if response[RESPONSE] == ACCEPTED:
+                #         if ALERT in response:
+                #             print(f"Список контактов:\n{response[ALERT]}")
+                #         else:
+                #             print("Список контактов пуст")
+                #     print("Формат сообщения:\n"
+                #           "message <получатель> <текст>")
+                #     client.run()
+                client.run()
 
 
 if __name__ == "__main__":
