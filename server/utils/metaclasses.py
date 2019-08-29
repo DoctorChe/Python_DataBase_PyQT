@@ -14,7 +14,7 @@ class ServerVerifier(type):
         # 'init_socket': <function Server.init_socket at 0x000000DACCE3E400>,
         # 'main_loop': <function Server.main_loop at 0x000000DACCE3E488>,
         # 'process_message': <function Server.process_message at 0x000000DACCE3E510>,
-        # 'process_client_message': <function Server.process_client_message at 0x000000DACCE3E598>}
+        # 'handle_process_client_message': <function Server.handle_process_client_message at 0x000000DACCE3E598>}
 
         # Список методов, которые используются в функциях класса:
         methods = []

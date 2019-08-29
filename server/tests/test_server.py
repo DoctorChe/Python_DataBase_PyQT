@@ -29,7 +29,7 @@ class TestServerInstance(unittest.TestCase):
 #         }
 #         server = Server((DEFAULT_SERVER_IP, DEFAULT_PORT), SERVER_DATABASE)
 #         # response = server.create_error_response(msg)
-#         response = server.process_client_message(msg)
+#         response = server.handle_process_client_message(msg)
 #         self.assertEqual(response, {RESPONSE: 400, ERROR: 'Неправильный запрос/JSON объект'})
 #
 #     # ключ action имеет значение не presence
