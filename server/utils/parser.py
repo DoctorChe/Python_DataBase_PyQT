@@ -28,4 +28,7 @@ def create_parser():
                         default=DEFAULT_PORT,
                         type=int,
                         help="Номер порта")
+    parser.add_argument("-m", "--migrate",
+                        action="store_true",
+                        help="Осуществить миграцию")
     return parser

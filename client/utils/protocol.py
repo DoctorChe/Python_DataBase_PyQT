@@ -5,12 +5,27 @@ from jim.config_jim import ACTION, MSG, TIME, TO, FROM, MESSAGE, QUIT, ACCOUNT_N
 
 
 # Функция создаёт текстовое сообщение
-def create_message(message_to, message_from, text):
+# def create_message(action, message_to, message_from, text):
+def create_echo_message(action, text):
     return {
-        ACTION: MSG,
+        # ACTION: MSG,
+        ACTION: action,
         TIME: time.time(),
-        TO: message_to,
-        FROM: message_from,
+        # TO: message_to,
+        # FROM: message_from,
+        MESSAGE: text
+    }
+
+
+# Функция создаёт текстовое сообщение
+# def create_message(action, message_to, message_from, text):
+def create_message(action, text):
+    return {
+        # ACTION: MSG,
+        ACTION: action,
+        TIME: time.time(),
+        # TO: message_to,
+        # FROM: message_from,
         MESSAGE: text
     }
 

@@ -3,7 +3,7 @@ import time
 from socket import socket, AF_INET, SOCK_STREAM
 
 from client.utils.protocol import create_message, get_contact_list, add_contact, get_contact, remove_contact, \
-    update_contact, create_exit_message
+    update_contact, create_exit_message, create_echo_message
 from jim.config_jim import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, RESPONSE_CODES, MESSAGE,
                             OK, ERROR, ACCEPTED, ALERT)
 from client.utils.message import send_message, recieve_message
@@ -151,72 +151,82 @@ class Client(metaclass=ClientVerifier):
         """Клиент пишет сообщение в бесконечном цикле"""
         while True:
             message_str = input(">>> ")
-            if message_str.startswith("message"):
-                message_list = message_str.split()
-                try:
-                    to = message_list[1]
-                    text = ' '.join(message_list[2:])
-                except IndexError:
-                    print("Не задан получатель или текст сообщения")
-                else:
-                    message = create_message(to, self.__name, text)
-                    # print(f"Сформировано сообщение: {message}")
-                    self.send(message)
-                    # print(f"Отослано сообщение: {message}")
-            elif message_str.startswith("get_contact_list"):
-                message = get_contact_list(self.name)
-                self.send(message)
-            elif message_str.startswith("add_contact"):
-                message_list = message_str.split()
-                try:
-                    contact = message_list[1]
-                except IndexError:
-                    print("Не задано имя контакта")
-                else:
-                    message = add_contact(self.name, contact)
-                    self.send(message)
-            elif message_str.startswith("get_contact"):
-                message_list = message_str.split()
-                try:
-                    contact = message_list[1]
-                except IndexError:
-                    print("Не задано имя контакта")
-                else:
-                    message = get_contact(self.name, contact)
-                    self.send(message)
-            elif message_str.startswith("del_contact"):
-                message_list = message_str.split()
-                try:
-                    contact = message_list[1]
-                except IndexError:
-                    print("Не задано имя контакта")
-                else:
-                    message = remove_contact(self.name, contact)
-                    self.send(message)
-            elif message_str.startswith("update_contact"):
-                message_list = message_str.split()
-                try:
-                    contact = message_list[1]
-                    information = ' '.join(message_list[2:])
-                except IndexError:
-                    print("Не задано имя контакта")
-                else:
-                    message = update_contact(self.name, contact, information)
-                    self.send(message)
-            elif message_str == "help":
-                print("message <получатель> <текст> - отправить сообщение")
-            elif message_str == "quit":
-                try:
-                    send_message(self.__socket, create_exit_message(self.name))
-                    # self.send(self.create_exit_message())
-                except:
-                    pass
-                print("Завершение соединения.")
-                logger.info("Завершение работы по команде пользователя.")
-                time.sleep(0.5)  # Задержка неоходима, чтобы успело уйти сообщение о выходе
-                break
+
+            message_list = message_str.split()
+            action = message_list[0]
+            if len(message_list) > 1:
+                text = " ".join(message_list[1:])
             else:
-                print("Неверная команда, для справки введите help")
+                text = ""
+            message = create_message(action, text)
+            self.send(message)
+
+            # if message_str.startswith("echo"):
+            #     message_list = message_str.split()
+            #     try:
+            #         action = message_list[0]
+            #         text = " ".join(message_list[1:])
+            #     except IndexError:
+            #         print("Не задан текст сообщения")
+            #     else:
+            #         message = create_echo_message(action, text)
+            #         # print(f"Сформировано сообщение: {message}")
+            #         self.send(message)
+            #         # print(f"Отослано сообщение: {message}")
+            # elif message_str.startswith("get_contact_list"):
+            #     message = get_contact_list(self.name)
+            #     self.send(message)
+            # elif message_str.startswith("add_contact"):
+            #     message_list = message_str.split()
+            #     try:
+            #         contact = message_list[1]
+            #     except IndexError:
+            #         print("Не задано имя контакта")
+            #     else:
+            #         message = add_contact(self.name, contact)
+            #         self.send(message)
+            # elif message_str.startswith("get_contact"):
+            #     message_list = message_str.split()
+            #     try:
+            #         contact = message_list[1]
+            #     except IndexError:
+            #         print("Не задано имя контакта")
+            #     else:
+            #         message = get_contact(self.name, contact)
+            #         self.send(message)
+            # elif message_str.startswith("del_contact"):
+            #     message_list = message_str.split()
+            #     try:
+            #         contact = message_list[1]
+            #     except IndexError:
+            #         print("Не задано имя контакта")
+            #     else:
+            #         message = remove_contact(self.name, contact)
+            #         self.send(message)
+            # elif message_str.startswith("update_contact"):
+            #     message_list = message_str.split()
+            #     try:
+            #         contact = message_list[1]
+            #         information = ' '.join(message_list[2:])
+            #     except IndexError:
+            #         print("Не задано имя контакта")
+            #     else:
+            #         message = update_contact(self.name, contact, information)
+            #         self.send(message)
+            # elif message_str == "help":
+            #     print("message <получатель> <текст> - отправить сообщение")
+            # elif message_str == "quit":
+            #     try:
+            #         send_message(self.__socket, create_exit_message(self.name))
+            #         # self.send(self.create_exit_message())
+            #     except:
+            #         pass
+            #     print("Завершение соединения.")
+            #     logger.info("Завершение работы по команде пользователя.")
+            #     time.sleep(0.5)  # Задержка неоходима, чтобы успело уйти сообщение о выходе
+            #     break
+            # else:
+            #     print("Неверная команда, для справки введите help")
 
     def run(self):
         t = threading.Thread(target=self.read_messages)
@@ -230,7 +240,7 @@ def main():
 
     account_name = parser.parse_args().name
     print(account_name)
-    status = "Yep, I am here!"
+    # status = "Yep, I am here!"
 
     transport = socket(AF_INET, SOCK_STREAM)
 

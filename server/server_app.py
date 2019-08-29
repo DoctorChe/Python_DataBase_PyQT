@@ -1,15 +1,17 @@
+import os
 import select
 import threading
 from typing import Tuple
 from socket import socket, AF_INET, SOCK_STREAM
 from jim.config_jim import TO
-from server.utils.config_server import WORKERS
+from server.utils.config_server import WORKERS, INSTALLED_MODULES, BASE_DIR
 from server.utils.hendlers import handle_process_client_message
 from server.utils.message import send_message, recieve_message
-from server.utils.server_db import ServerStorage
 from server.utils.parser import create_parser
 from server.utils.metaclasses import ServerVerifier
 from server.utils.descriptors import CheckedHost
+# from server.utils.server_db import ServerStorage
+from server.utils.server_db import Base
 
 import logging
 # from server.utils import server_log_config
@@ -25,13 +27,15 @@ class Server(metaclass=ServerVerifier):
 
     __host = CheckedHost()
 
-    def __init__(self, host: Tuple[str, int], database):
+    # def __init__(self, host: Tuple[str, int], database):
+    def __init__(self, host: Tuple[str, int], handler):
         self.__host = host
         self.__server = None
         self.clients = []  # список подключенных клиентов
         self.names = None  # Словарь содержащий имена и соответствующие им сокеты
         self.messages = []  # Список сообщений на отправку
-        self.database = database  # База данных сервера
+        # self.database = database  # База данных сервера
+        self._handler = handler
 
         # super().__init__()  # Конструктор предка
 
@@ -136,7 +140,8 @@ class Server(metaclass=ServerVerifier):
                 # for message in self.messages:
                 message = self.messages.pop()
                 # print(f"Сообщение: {message} извлечено из списка сообщений")
-                response = handle_process_client_message(message, self.database)
+                # response = handle_process_client_message(message)
+                response = self._handler(message)
                 # print(f"Сформирован ответ: {response} на сообщение {message}")
                 for client_waiting_message in send_data_list:
                     # self.write(send_data_list, message)
@@ -170,12 +175,28 @@ class Server(metaclass=ServerVerifier):
 def main():
     parser = create_parser()
 
-    database = ServerStorage()  # Инициализация базы данных
+    # database = ServerStorage()  # Инициализация базы данных
 
-    with Server((parser.parse_args().addr, parser.parse_args().port), database) as server:
-        server.run()
-        # server.daemon = True
-        # server.start()
+    # with Server((parser.parse_args().addr, parser.parse_args().port), database) as server:
+
+    if parser.parse_args().migrate:
+        module_name_list = [f"{item}.models" for item in INSTALLED_MODULES]
+        # print(f"BASE_DIR = {BASE_DIR}")
+        module_path_list = (os.path.join(BASE_DIR, item, "models.py") for item in INSTALLED_MODULES)
+        for index, path in enumerate(module_path_list):
+            if os.path.exists(path):
+                __import__(module_name_list[index])
+            # print(f"module_name_list = {module_name_list}")
+        Base.metadata.create_all()
+
+    else:
+        with Server(
+                (parser.parse_args().addr, parser.parse_args().port),
+                handle_process_client_message
+        ) as server:
+            server.run()
+            # server.daemon = True
+            # server.start()
 
 
 if __name__ == "__main__":
