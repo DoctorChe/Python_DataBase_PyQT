@@ -1,4 +1,5 @@
 from jim.config_jim import ACTION, WRONG_REQUEST, SERVER_ERROR, NOT_FOUND
+from server.utils.middlewares import compression_middleware
 from server.utils.protocol import common_check_message, create_error_response
 from server.utils.resolvers import resolve
 
@@ -12,6 +13,7 @@ log = Log(logger)
 
 
 # Обработчик сообщений от клиентов, принимает словарь - сообщение от клиента, проверяет корректность, формирует ответ
+# @compression_middleware
 def handle_process_client_message(message: dict):
     logger.debug(f"Разбор сообщения от клиента : {message}")
     if common_check_message(message):
