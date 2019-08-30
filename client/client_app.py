@@ -1,12 +1,10 @@
 import threading
 import time
-from socket import socket, AF_INET, SOCK_STREAM
 
 from client.utils.protocol import create_message
 from jim.config_jim import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, RESPONSE_CODES, MESSAGE,
-                            OK, ERROR, ALERT, ACCEPTED, GET_CONTACTS)
+                            ERROR, ALERT)
 from client.utils.message import send_message, recieve_message
-from client.utils.parser import create_parser
 from client.utils.metaclasses import ClientVerifier
 from client.utils.errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
 from client.utils.descriptors import CheckedHost, ClientName
@@ -23,20 +21,20 @@ log = Log(logger)
 # class Client(threading.Thread, metaclass=ClientVerifier):
 class Client(metaclass=ClientVerifier):
 
-    __name = ClientName()
-    __host = CheckedHost()
+    _name = ClientName()
+    _host = CheckedHost()
 
     def __init__(self, host, transport, name="Guest"):
-        self.__name = name
-        self.__host = host
-        self.__socket = transport
-        # self.__socket = None
+        self._name = name
+        self._host = host
+        self._socket = transport
+        # self._socket = None
 
         # super().__init__()  # Конструктор предка
 
     def __enter__(self):
-        if not self.__socket:
-            # self.__socket = socket()
+        if not self._socket:
+            # self._socket = socket()
             raise TypeError("Socket does not exist")
         return self
 
@@ -51,12 +49,12 @@ class Client(metaclass=ClientVerifier):
 
     @property
     def name(self):
-        return self.__name
+        return self._name
 
     @log
     def connect(self):
         try:
-            self.__socket.connect(self.__host)
+            self._socket.connect(self._host)
         except ConnectionRefusedError:
             # print("Connection refused. Server unavailable.")
 
@@ -68,13 +66,13 @@ class Client(metaclass=ClientVerifier):
         return True
 
     def close(self):
-        self.__socket.close()
+        self._socket.close()
 
     def send(self, request):
-        send_message(self.__socket, request)
+        send_message(self._socket, request)
 
     def recieve(self):
-        return recieve_message(self.__socket)
+        return recieve_message(self._socket)
 
     @log
     def create_presence(self, status=None):
@@ -163,7 +161,7 @@ class Client(metaclass=ClientVerifier):
             #     print("message <получатель> <текст> - отправить сообщение")
             # elif message_str == "quit":
             #     try:
-            #         send_message(self.__socket, create_exit_message(self.name))
+            #         send_message(self._socket, create_exit_message(self.name))
             #         # self.send(self.create_exit_message())
             #     except:
             #         pass
@@ -179,42 +177,3 @@ class Client(metaclass=ClientVerifier):
         t.daemon = True
         t.start()
         self.write_messages()
-
-
-def main():
-    parser = create_parser()
-
-    account_name = parser.parse_args().name
-    print(account_name)
-    # status = "Yep, I am here!"
-
-    transport = socket(AF_INET, SOCK_STREAM)
-
-    with Client(
-            (parser.parse_args().addr, parser.parse_args().port),
-            transport,
-            account_name
-    ) as client:
-        if client.connect():
-            message = create_message(PRESENCE, account_name)  # формируем presense сообщение
-            client.send(message)  # отправляем сообщение серверу
-            response = client.recieve()  # получаем ответ от сервера
-            response = client.translate_message(response)  # разбираем сообщение от сервера
-            if response[RESPONSE] == OK:
-                print("Соединение установлено.")
-                message = create_message(GET_CONTACTS, account_name)  # запрашиваем список контактов
-                client.send(message)  # отправляем сообщение серверу
-                response = client.recieve()  # получаем ответ от сервера
-                response = client.translate_message(response)  # разбираем сообщение от сервера
-                if response[RESPONSE] == ACCEPTED:
-                    if ALERT in response:
-                        print(f"Список контактов:\n{response[ALERT]}")
-                    else:
-                        print("Список контактов пуст")
-                # print("Формат сообщения:\n"
-                #       "message <получатель> <текст>")
-                client.run()
-
-
-if __name__ == "__main__":
-    main()

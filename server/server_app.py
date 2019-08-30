@@ -1,16 +1,12 @@
-import os
 import select
 import threading
 from typing import Tuple
 from socket import socket, AF_INET, SOCK_STREAM
 from jim.config_jim import TO
-from server.utils.config_server import WORKERS, INSTALLED_MODULES, BASE_DIR
-from server.utils.hendlers import handle_process_client_message
+from server.utils.config_server import WORKERS
 from server.utils.message import send_message, recieve_message
-from server.utils.parser import create_parser
 from server.utils.metaclasses import ServerVerifier
 from server.utils.descriptors import CheckedHost
-from server.utils.server_db import Base
 
 import logging
 # from server.utils import server_log_config
@@ -24,21 +20,21 @@ log = Log(logger)
 # class Server(threading.Thread, metaclass=ServerVerifier):
 class Server(metaclass=ServerVerifier):
 
-    __host = CheckedHost()
+    _host = CheckedHost()
 
     def __init__(self, host: Tuple[str, int], handler):
-        self.__host = host
-        self.__server = None
-        self.clients = []  # список подключенных клиентов
-        self.names = None  # Словарь содержащий имена и соответствующие им сокеты
-        self.messages = []  # Список сообщений на отправку
+        self._host = host
+        self._server = None
+        self._clients = []  # список подключенных клиентов
+        # self.names = None  # Словарь содержащий имена и соответствующие им сокеты
+        self._messages = []  # Список сообщений на отправку
         self._handler = handler
 
         # super().__init__()  # Конструктор предка
 
     def __enter__(self):
-        # if not self.__server:
-        #     self.__server = socket(AF_INET, SOCK_STREAM)
+        # if not self._server:
+        #     self._server = socket(AF_INET, SOCK_STREAM)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -51,21 +47,21 @@ class Server(metaclass=ServerVerifier):
 
     def __new_listen_socket(self):
         transport = socket(AF_INET, SOCK_STREAM)
-        transport.bind(self.__host)
+        transport.bind(self._host)
         transport.settimeout(0.5)
 
         # Начинаем слушать сокет
-        self.__server = transport
-        self.__server.listen(WORKERS)
+        self._server = transport
+        self._server.listen(WORKERS)
 
     def accept(self):
         # Ждём подключения, если таймаут вышел, ловим исключение
         try:
-            client, client_address = self.__server.accept()
+            client, client_address = self._server.accept()
         except OSError:
             pass  # timeout вышел
         else:
-            self.clients.append(client)
+            self._clients.append(client)
             logger.info(f"Установлено соедение с клиентом {client_address}")
             print(f"Установлено соедение с клиентом {str(client_address)}")
 
@@ -74,10 +70,10 @@ class Server(metaclass=ServerVerifier):
             message = recieve_message(sock)
         except Exception:
             logger.info(f"Клиент {sock.getpeername()} отключился от сервера.")
-            self.clients.remove(sock)
+            self._clients.remove(sock)
         else:
             if message:
-                self.messages.append(message)
+                self._messages.append(message)
 
     # def write(self, send_data_lst, message):
     def write(self, sock, message):
@@ -88,18 +84,19 @@ class Server(metaclass=ServerVerifier):
         except TypeError:
             logger.info(f"Связь с клиентом с именем {message[TO]} была потеряна")
             try:
-                self.clients.remove(self.names[message[TO]])
+                # self._clients.remove(self.names[message[TO]])
+                self._clients.remove(sock)
             except ValueError:
                 pass
-            del self.names[message[TO]]
+            # del self.names[message[TO]]
 
     def run(self):
         self.__new_listen_socket()  # Инициализация сокета
 
         print("Сервер запущен")
 
-        if self.names is None:
-            self.names = dict()
+        # if self.names is None:
+        #     self.names = dict()
 
         # Основной цикл программы сервера
         while True:
@@ -111,8 +108,8 @@ class Server(metaclass=ServerVerifier):
             send_data_list = []
             err_list = []
             try:
-                if self.clients:
-                    recv_data_list, send_data_list, err_list = select.select(self.clients, self.clients, [], wait)
+                if self._clients:
+                    recv_data_list, send_data_list, err_list = select.select(self._clients, self._clients, [], wait)
             except OSError:
                 # Исключение произойдёт, если какой-то клиент отключится
                 pass
@@ -126,8 +123,8 @@ class Server(metaclass=ServerVerifier):
                     r_thread.start()
 
             # Если есть сообщения, обрабатываем каждое
-            if self.messages:
-                message = self.messages.pop()
+            if self._messages:
+                message = self._messages.pop()
                 response = self._handler(message)
                 for client_waiting_message in send_data_list:
                     w_thread = threading.Thread(
@@ -152,28 +149,3 @@ class Server(metaclass=ServerVerifier):
     #     else:
     #         logger.error(
     #             f"Пользователь {message[TO]} не зарегистрирован на сервере, отправка сообщения невозможна.")
-
-
-def main():
-    parser = create_parser()
-
-    if parser.parse_args().migrate:
-        module_name_list = [f"{item}.models" for item in INSTALLED_MODULES]
-        module_path_list = (os.path.join(BASE_DIR, item, "models.py") for item in INSTALLED_MODULES)
-        for index, path in enumerate(module_path_list):
-            if os.path.exists(path):
-                __import__(module_name_list[index])
-        Base.metadata.create_all()
-
-    else:
-        with Server(
-                (parser.parse_args().addr, parser.parse_args().port),
-                handle_process_client_message
-        ) as server:
-            server.run()
-            # server.daemon = True
-            # server.start()
-
-
-if __name__ == "__main__":
-    main()

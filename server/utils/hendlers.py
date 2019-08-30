@@ -46,7 +46,7 @@ def handle_process_client_message(message: dict):
         # else:
         #     response = create_error_response(CONFLICT, "Имя пользователя уже занято.")
         #     send_message(client, response)
-        #     self.clients.remove(client)
+        #     self._clients.remove(client)
         #     client.close()
         # return
         # Если это сообщение, то добавляем его в очередь сообщений. Ответ не требуется.
@@ -67,7 +67,7 @@ def handle_process_client_message(message: dict):
         #     #         print(f"Попытка отправки сообщения самому себе ('{message[TO]}')")
         #     #         send_message(client, response)
         #     #     else:
-        #     #         self.messages.append(message)
+        #     #         self._messages.append(message)
         #     # # TODO: отработать ситуацию когда получатель сообщения не найден
         #     # else:
         #     #     response = create_error_response(NOT_FOUND, "Получатель сообщения не найден")
@@ -82,7 +82,7 @@ def handle_process_client_message(message: dict):
         # ):
         #     self.database.user_logout(message[ACCOUNT_NAME])
         #     print(f"Клиент '{message[ACCOUNT_NAME].fileno()} {message[ACCOUNT_NAME].getpeername()}' отключился")
-        #     self.clients.remove(self.names[message[ACCOUNT_NAME]])
+        #     self._clients.remove(self.names[message[ACCOUNT_NAME]])
         #     self.names[message[ACCOUNT_NAME]].close()
         #     del self.names[message[ACCOUNT_NAME]]
         #     return
