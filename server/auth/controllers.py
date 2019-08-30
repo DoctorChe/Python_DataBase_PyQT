@@ -25,4 +25,3 @@ def user_login_controller(request):
     #     # TODO: отработать ситуацию, если имя пользователя уже занято
     #     response = create_error_response(CONFLICT, "Имя пользователя уже занято.")
     return response
-

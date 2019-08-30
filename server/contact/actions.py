@@ -14,4 +14,3 @@ action_names = [
     {ACTION: DEL_CONTACT, "controller": remove_contact_controller},
     {ACTION: UPDATE_CONTACT, "controller": update_contact_controller},
 ]
-
