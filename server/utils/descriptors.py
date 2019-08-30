@@ -40,7 +40,7 @@ class CheckedHost:
 
     def __set_name__(self, owner, name):
         # owner - <class '__main__.Client'>
-        # name - __name
+        # name - _name
         self.name = name
 
 

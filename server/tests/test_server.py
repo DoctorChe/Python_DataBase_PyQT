@@ -2,6 +2,8 @@ import os
 import sys
 import unittest
 
+from server.utils.protocol import common_check_message
+
 sys.path.append(os.path.join(os.getcwd(), ".."))
 
 from jim.config_jim import TIME, ACTION, PRESENCE, STATUS
@@ -17,7 +19,7 @@ class TestServerInstance(unittest.TestCase):
             Server()
 
 
-# class TestServerCreateResponce(unittest.TestCase):
+# class TestServerCreateResponse(unittest.TestCase):
 #
 #     # нет ключа action
 #     def test_action_response(self):
@@ -26,9 +28,9 @@ class TestServerInstance(unittest.TestCase):
 #             TIME: time.time()
 #         }
 #         server = Server((DEFAULT_SERVER_IP, DEFAULT_PORT), SERVER_DATABASE)
-#         # responce = server.create_responce(msg)
-#         responce = server.process_client_message(msg)
-#         self.assertEqual(responce, {RESPONSE: 400, ERROR: 'Неправильный запрос/JSON объект'})
+#         # response = server.create_error_response(msg)
+#         response = server.handle_process_client_message(msg)
+#         self.assertEqual(response, {RESPONSE: 400, ERROR: 'Неправильный запрос/JSON объект'})
 #
 #     # ключ action имеет значение не presence
 #     def test_presence_response(self):
@@ -37,8 +39,8 @@ class TestServerInstance(unittest.TestCase):
 #             TIME: 1000.10
 #         }
 #         server = Server((DEFAULT_SERVER_IP, DEFAULT_PORT), SERVER_DATABASE)
-#         responce = server.create_responce(msg)
-#         self.assertEqual(responce, {RESPONSE: 400, ERROR: 'Неправильный запрос/JSON объект'})
+#         response = server.create_error_response(msg)
+#         self.assertEqual(response, {RESPONSE: 400, ERROR: 'Неправильный запрос/JSON объект'})
 #
 #     # нет ключа time
 #     def test_time_response(self):
@@ -46,8 +48,8 @@ class TestServerInstance(unittest.TestCase):
 #             ACTION: PRESENCE
 #         }
 #         server = Server((DEFAULT_SERVER_IP, DEFAULT_PORT), SERVER_DATABASE)
-#         responce = server.create_responce(msg)
-#         self.assertEqual(responce, {RESPONSE: 400, ERROR: 'Неправильный запрос/JSON объект'})
+#         response = server.create_error_response(msg)
+#         self.assertEqual(response, {RESPONSE: 400, ERROR: 'Неправильный запрос/JSON объект'})
 #
 #     # неправильное время
 #     def test_time_incorrect_response(self):
@@ -56,8 +58,8 @@ class TestServerInstance(unittest.TestCase):
 #             TIME: "test_time"
 #         }
 #         server = Server((DEFAULT_SERVER_IP, DEFAULT_PORT), SERVER_DATABASE)
-#         responce = server.create_responce(msg)
-#         self.assertEqual(responce, {RESPONSE: 400, ERROR: 'Неправильный запрос/JSON объект'})
+#         response = server.create_error_response(msg)
+#         self.assertEqual(response, {RESPONSE: 400, ERROR: 'Неправильный запрос/JSON объект'})
 #
 #     # правильное время
 #     def test_time_correct_response(self):
@@ -66,8 +68,8 @@ class TestServerInstance(unittest.TestCase):
 #             TIME: 1000.10,
 #         }
 #         server = Server((DEFAULT_SERVER_IP, DEFAULT_PORT), SERVER_DATABASE)
-#         responce = server.create_responce(msg)
-#         self.assertEqual(responce, {'response': 200})
+#         response = server.create_error_response(msg)
+#         self.assertEqual(response, {'response': 200})
 
 
 # базовая проверка полученного сообщения
@@ -81,7 +83,7 @@ class TestServerCheckMessage(unittest.TestCase):
             STATUS: "A" * 640,
         }
         server = Server((DEFAULT_SERVER_IP, DEFAULT_PORT), SERVER_DATABASE)
-        self.assertEqual(server.common_check_message(msg), False)
+        self.assertEqual(common_check_message(msg), False)
 
     # слишком длинное сообщение ( > 15 символов)
     def test_long_action(self):
@@ -90,7 +92,7 @@ class TestServerCheckMessage(unittest.TestCase):
             TIME: 1000.10,
         }
         server = Server((DEFAULT_SERVER_IP, DEFAULT_PORT), SERVER_DATABASE)
-        self.assertEqual(server.common_check_message(msg), False)
+        self.assertEqual(common_check_message(msg), False)
 
     # слишком длинное сообщение
     def test_time_incorrect(self):
@@ -99,7 +101,7 @@ class TestServerCheckMessage(unittest.TestCase):
             TIME: "test_time",
         }
         server = Server((DEFAULT_SERVER_IP, DEFAULT_PORT), SERVER_DATABASE)
-        self.assertEqual(server.common_check_message(msg), False)
+        self.assertEqual(common_check_message(msg), False)
 
 
 if __name__ == "__main__":
