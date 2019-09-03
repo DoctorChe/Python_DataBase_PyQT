@@ -1,18 +1,18 @@
 import threading
 import time
 
-from client.utils.protocol import create_message
-from jim.config_jim import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, RESPONSE_CODES, MESSAGE,
-                            ERROR, ALERT)
-from client.utils.message import send_message, receive_message
-from client.utils.metaclasses import ClientVerifier
-from client.utils.errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
-from client.utils.descriptors import CheckedHost, ClientName
+from utils.protocol import create_message
+from utils.config_jim import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, RESPONSE_CODES,
+                              MESSAGE, ERROR, ALERT)
+from utils.message import send_message, receive_message
+from utils.metaclasses import ClientVerifier
+from utils.errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
+from utils.descriptors import CheckedHost, ClientName
 
 import logging
-from client.utils import client_log_config
-# from client.utils import client_log_config
-from client.utils.decorators import Log
+from utils import client_log_config
+# from utils import client_log_config
+from utils.decorators import Log
 
 logger = logging.getLogger("client")
 log = Log(logger)

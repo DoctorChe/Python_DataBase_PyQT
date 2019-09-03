@@ -1,5 +1,5 @@
 import argparse
-from server.utils.config_server import DEFAULT_SERVER_IP, DEFAULT_PORT, PROGRAM, VERSION
+from utils.config_server import DEFAULT_SERVER_IP, DEFAULT_PORT, PROGRAM, VERSION
 
 
 def create_parser():

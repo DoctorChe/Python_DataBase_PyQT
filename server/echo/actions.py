@@ -1,4 +1,4 @@
-from jim.config_jim import ACTION, ECHO
+from server.utils.config_jim import ACTION, ECHO
 from .controllers import (
     echo_controller,
     get_messages_controller,

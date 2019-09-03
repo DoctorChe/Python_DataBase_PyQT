@@ -6,7 +6,7 @@ from server.utils.protocol import common_check_message
 
 sys.path.append(os.path.join(os.getcwd(), ".."))
 
-from jim.config_jim import TIME, ACTION, PRESENCE, STATUS
+from server.utils.config_jim import TIME, ACTION, PRESENCE, STATUS
 from server.utils.config_server import DEFAULT_SERVER_IP, DEFAULT_PORT, SERVER_DATABASE
 from server.server_app import Server
 

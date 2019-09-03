@@ -2,7 +2,7 @@ from functools import reduce
 
 from server.utils.server_db import Session
 # from decorators import logged
-from jim.config_jim import MESSAGE, OK, WRONG_REQUEST
+from server.utils.config_jim import MESSAGE, OK, WRONG_REQUEST
 from server.utils.protocol import create_response, create_error_response
 from .models import Message
 

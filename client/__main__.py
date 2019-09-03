@@ -1,9 +1,9 @@
 from socket import socket, AF_INET, SOCK_STREAM
 
-from client.client_app import Client
-from client.utils.parser import create_parser
-from client.utils.protocol import create_message
-from jim.config_jim import PRESENCE, RESPONSE, OK, GET_CONTACTS, ACCEPTED, ALERT
+from client_app import Client
+from utils.parser import create_parser
+from utils.protocol import create_message
+from utils.config_jim import PRESENCE, RESPONSE, OK, GET_CONTACTS, ACCEPTED, ALERT
 
 parser = create_parser()
 

@@ -1,6 +1,6 @@
 import time
 
-from jim.config_jim import ACTION, TIME, MESSAGE
+from utils.config_jim import ACTION, TIME, MESSAGE
 
 
 # Функция создаёт текстовое сообщение

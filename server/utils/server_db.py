@@ -8,7 +8,8 @@ from sqlalchemy import MetaData
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from server.utils.config_server import SERVER_DATABASE
+
+from utils.config_server import SERVER_DATABASE
 
 engine = create_engine(SERVER_DATABASE)
 Base = declarative_base(metadata=MetaData(bind=engine))

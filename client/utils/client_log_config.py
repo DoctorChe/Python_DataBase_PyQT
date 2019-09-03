@@ -1,7 +1,7 @@
 import logging
 import os
 
-from client.utils.config_client import ENCODING
+from utils.config_client import ENCODING
 
 # Родительская папка от папки где лежит настоящий файл + вложенная папка logs
 LOG_FOLDER_PATH = os.path.join(

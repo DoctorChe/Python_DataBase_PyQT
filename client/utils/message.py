@@ -4,8 +4,8 @@ import zlib
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 
-from client.utils.config_client import ENCODING, MSG_SIZE
-from client.utils.util import get_chunk
+from utils.config_client import ENCODING, MSG_SIZE
+from utils.util import get_chunk
 
 
 def send_message(socket, msg: dict):

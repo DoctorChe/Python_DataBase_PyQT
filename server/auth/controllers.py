@@ -1,4 +1,4 @@
-from jim.config_jim import MESSAGE, OK
+from server.utils.config_jim import MESSAGE, OK
 from server.auth.models import User
 from server.utils.protocol import create_alert_response
 from server.utils.server_db import Session

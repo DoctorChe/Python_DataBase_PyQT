@@ -1,15 +1,15 @@
 import json
 
-from jim.config_jim import ACTION, WRONG_REQUEST, SERVER_ERROR, NOT_FOUND
-from server.utils.middlewares import compression_middleware, encryption_middleware
-from server.utils.config_server import ENCODING
-from server.utils.protocol import common_check_message, create_error_response
-from server.utils.resolvers import resolve
+from utils.config_jim import ACTION, WRONG_REQUEST, SERVER_ERROR, NOT_FOUND
+from utils.middlewares import compression_middleware, encryption_middleware
+from utils.config_server import ENCODING
+from utils.protocol import common_check_message, create_error_response
+from utils.resolvers import resolve
 
 import logging
-# from server.utils import server_log_config
-from server.utils import server_log_config
-from server.utils.decorators import Log
+# from utils import server_log_config
+from utils import server_log_config
+from utils.decorators import Log
 
 logger = logging.getLogger("server")
 log = Log(logger)

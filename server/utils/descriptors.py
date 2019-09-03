@@ -2,9 +2,9 @@ import ipaddress
 import socket
 
 import logging
-from server.utils import server_log_config
-# from server.utils import server_log_config
-from server.utils.decorators import Log
+from utils import server_log_config
+# from utils import server_log_config
+from utils.decorators import Log
 
 logger = logging.getLogger("server")
 log = Log(logger)

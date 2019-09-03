@@ -3,7 +3,7 @@ from functools import wraps
 
 from Crypto.Cipher import AES
 
-from server.utils.util import get_chunk
+from utils.util import get_chunk
 
 
 def compression_middleware(func):

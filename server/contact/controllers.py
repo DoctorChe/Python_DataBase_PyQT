@@ -1,4 +1,4 @@
-from jim.config_jim import MESSAGE, OK, CONFLICT, ACCEPTED
+from server.utils.config_jim import MESSAGE, OK, CONFLICT, ACCEPTED
 from server.auth.models import User
 from server.contact.models import Contact
 from server.utils.protocol import create_error_response, create_alert_response
@@ -48,6 +48,8 @@ def get_contacts_controller(request):
                 response = create_alert_response(ACCEPTED, str(contact_list))
             else:
                 response = create_alert_response(ACCEPTED, "Контакт лист пуст")
+        else:
+            response = create_error_response(CONFLICT, f"Клиент {user_name} не зарегистрирован")
     else:
         print("Не задано имя пользователя")
         response = create_error_response(CONFLICT, "Не задано имя пользователя")

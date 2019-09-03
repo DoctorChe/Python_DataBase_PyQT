@@ -1,4 +1,4 @@
-from jim.config_jim import ACTION, PRESENCE
+from server.utils.config_jim import ACTION, PRESENCE
 from .controllers import (
     user_login_controller,
 )
