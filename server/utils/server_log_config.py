@@ -37,6 +37,7 @@ server_logger.addHandler(server_handler)
 
 # Устанавливаем уровень сообщений логгера
 server_logger.setLevel(logging.INFO)
+# server_logger.setLevel(logging.DEBUG)
 
 
 # отладка

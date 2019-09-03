@@ -3,8 +3,7 @@ import threading
 from typing import Tuple
 from socket import socket, AF_INET, SOCK_STREAM
 from jim.config_jim import TO
-from server.utils.config_server import WORKERS
-from server.utils.message import send_message, recieve_message
+from server.utils.config_server import WORKERS, MSG_SIZE
 from server.utils.metaclasses import ServerVerifier
 from server.utils.descriptors import CheckedHost
 
@@ -67,7 +66,7 @@ class Server(metaclass=ServerVerifier):
 
     def read(self, sock):
         try:
-            message = recieve_message(sock)
+            message = sock.recv(MSG_SIZE)
         except Exception:
             logger.info(f"Клиент {sock.getpeername()} отключился от сервера.")
             self._clients.remove(sock)
@@ -80,7 +79,7 @@ class Server(metaclass=ServerVerifier):
         try:
             # self.process_message(message, send_data_lst)
             # TODO: сделать проверку: зарегистрирован ли клиент на сервере
-            send_message(sock, message)
+            sock.send(message)
         except TypeError:
             logger.info(f"Связь с клиентом с именем {message[TO]} была потеряна")
             try:
