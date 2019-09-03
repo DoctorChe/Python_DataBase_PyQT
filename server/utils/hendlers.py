@@ -1,5 +1,8 @@
+import json
+
 from jim.config_jim import ACTION, WRONG_REQUEST, SERVER_ERROR, NOT_FOUND
-# from server.utils.middlewares import compression_middleware
+from server.utils.middlewares import compression_middleware, encryption_middleware
+from server.utils.config_server import ENCODING
 from server.utils.protocol import common_check_message, create_error_response
 from server.utils.resolvers import resolve
 
@@ -12,9 +15,11 @@ logger = logging.getLogger("server")
 log = Log(logger)
 
 
-# Обработчик сообщений от клиентов, принимает словарь - сообщение от клиента, проверяет корректность, формирует ответ
-# @compression_middleware
-def handle_process_client_message(message: dict):
+@compression_middleware
+@encryption_middleware
+def handle_process_client_message(raw_message):
+    message = json.loads(raw_message.decode(ENCODING))
+
     logger.debug(f"Разбор сообщения от клиента : {message}")
     if common_check_message(message):
         action_name = message.get(ACTION)
@@ -93,4 +98,4 @@ def handle_process_client_message(message: dict):
         logging.error(f"Запрос некорректен: {message}")
         # response = create_response(message, WRONG_REQUEST, "Запрос некорректен.")
         response = create_error_response(WRONG_REQUEST, "Запрос некорректен.")
-    return response
+    return json.dumps(response).encode(ENCODING)

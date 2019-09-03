@@ -1,7 +1,11 @@
 import json
 import zlib
 
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+
 from client.utils.config_client import ENCODING, MSG_SIZE
+from client.utils.util import get_chunk
 
 
 def send_message(socket, msg: dict):
@@ -11,13 +15,24 @@ def send_message(socket, msg: dict):
     :param msg: словарь сообщения
     :return: None
     """
-    js_message = json.dumps(msg)
-    encoded_message = js_message.encode(ENCODING)
-    compressed_message = zlib.compress(encoded_message)
+    key = get_random_bytes(16)
+    cipher = AES.new(key, AES.MODE_EAX)
+
+    encoded_message = json.dumps(msg).encode(ENCODING)
+
+    encrypted_message, tag = cipher.encrypt_and_digest(encoded_message)
+
+    compressed_message = zlib.compress(b"%(nonce)s%(key)s%(tag)s%(data)s" % {
+        b"nonce": cipher.nonce,
+        b"key": key,
+        b"tag": tag,
+        b"data": encrypted_message
+        })
+
     socket.send(compressed_message)
 
 
-def recieve_message(socket) -> dict:
+def receive_message(socket) -> dict:
     """
     Получение сообщения
     :param socket: сокет
@@ -25,9 +40,16 @@ def recieve_message(socket) -> dict:
     """
     try:
         compressed_message = socket.recv(MSG_SIZE)
-        decompressed_message = zlib.decompress(compressed_message)
-        decoded_message = decompressed_message.decode(ENCODING)
-        message = json.loads(decoded_message)
+        encrypted_message = zlib.decompress(compressed_message)
+
+        nonce, encrypted_message = get_chunk(encrypted_message, 16)
+        key, encrypted_message = get_chunk(encrypted_message, 16)
+        tag, encrypted_message = get_chunk(encrypted_message, 16)
+
+        cipher = AES.new(key, AES.MODE_EAX, nonce)
+
+        decrypted_message = cipher.decrypt_and_verify(encrypted_message, tag)
+        message = json.loads(decrypted_message.decode(ENCODING))
     except OSError:
         return {
             "response": 499,

@@ -4,7 +4,7 @@ import time
 from client.utils.protocol import create_message
 from jim.config_jim import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, RESPONSE_CODES, MESSAGE,
                             ERROR, ALERT)
-from client.utils.message import send_message, recieve_message
+from client.utils.message import send_message, receive_message
 from client.utils.metaclasses import ClientVerifier
 from client.utils.errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
 from client.utils.descriptors import CheckedHost, ClientName
@@ -71,8 +71,8 @@ class Client(metaclass=ClientVerifier):
     def send(self, request):
         send_message(self._socket, request)
 
-    def recieve(self):
-        return recieve_message(self._socket)
+    def receive(self):
+        return receive_message(self._socket)
 
     @log
     def create_presence(self, status=None):
@@ -133,7 +133,7 @@ class Client(metaclass=ClientVerifier):
         Клиент читает входящие сообщения в бесконечном цикле
         """
         while True:
-            message = self.recieve()  # получаем ответ от сервера
+            message = self.receive()  # получаем ответ от сервера
             if RESPONSE in message:
                 if ERROR in message:
                     print(f"Ошибка {message[RESPONSE]} - {message[ERROR]}")

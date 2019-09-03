@@ -21,13 +21,13 @@ with Client(
     if client.connect():
         message = create_message(PRESENCE, account_name)  # формируем presense сообщение
         client.send(message)  # отправляем сообщение серверу
-        response = client.recieve()  # получаем ответ от сервера
+        response = client.receive()  # получаем ответ от сервера
         response = client.translate_message(response)  # разбираем сообщение от сервера
         if response[RESPONSE] == OK:
             print("Соединение установлено.")
             message = create_message(GET_CONTACTS, account_name)  # запрашиваем список контактов
             client.send(message)  # отправляем сообщение серверу
-            response = client.recieve()  # получаем ответ от сервера
+            response = client.receive()  # получаем ответ от сервера
             response = client.translate_message(response)  # разбираем сообщение от сервера
             if response[RESPONSE] == ACCEPTED:
                 if ALERT in response:
