@@ -1,4 +1,6 @@
 import json
+import zlib
+
 from server.utils.config_server import ENCODING, MSG_SIZE
 
 
@@ -9,7 +11,10 @@ def send_message(socket, msg):
     :param msg: словарь сообщения
     :return: None
     """
-    socket.send(json.dumps(msg).encode(ENCODING))
+    js_message = json.dumps(msg)
+    encoded_message = js_message.encode(ENCODING)
+    compressed_message = zlib.compress(encoded_message)
+    socket.send(compressed_message)
 
 
 def recieve_message(socket):
@@ -18,4 +23,8 @@ def recieve_message(socket):
     :param socket: сокет
     :return: словарь сообщения
     """
-    return json.loads(socket.recv(MSG_SIZE).decode(ENCODING))
+    compressed_message = socket.recv(MSG_SIZE)
+    decompressed_message = zlib.decompress(compressed_message)
+    decoded_message = decompressed_message.decode(ENCODING)
+    message = json.loads(decoded_message)
+    return message

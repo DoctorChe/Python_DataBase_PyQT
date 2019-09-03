@@ -1,5 +1,5 @@
 from jim.config_jim import ACTION, WRONG_REQUEST, SERVER_ERROR, NOT_FOUND
-from server.utils.middlewares import compression_middleware
+# from server.utils.middlewares import compression_middleware
 from server.utils.protocol import common_check_message, create_error_response
 from server.utils.resolvers import resolve
 
