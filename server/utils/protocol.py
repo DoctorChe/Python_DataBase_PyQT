@@ -1,12 +1,13 @@
 from utils.config_jim import RESPONSE_CODES, RESPONSE, ERROR, ALERT, ACTION, TIME, MSG, MESSAGE, FROM, TO, DATA
 
-import logging
-# from utils import server_log_config
-from utils import server_log_config
-from utils.decorators import Log
-
-logger = logging.getLogger("server")
-log = Log(logger)
+# import logging
+# # from utils import config_log_server
+# from utils import config_log_server
+# from utils.decorators import Log
+#
+# logger = logging.getLogger("server")
+# log = Log(logger)
+from server.utils.decorators import logged
 
 
 def common_check_message(msg: dict) -> bool:
@@ -37,7 +38,7 @@ def common_check_message(msg: dict) -> bool:
     return False
 
 
-@log
+@logged
 def create_response(request: dict, response_code: int, msg=None) -> dict:
     return {
         ACTION: request[ACTION],
@@ -47,7 +48,7 @@ def create_response(request: dict, response_code: int, msg=None) -> dict:
     }
 
 
-@log
+@logged
 def create_error_response(response: int, error=None) -> dict:
     """
     Формирование ответа клиенту
@@ -68,7 +69,7 @@ def create_error_response(response: int, error=None) -> dict:
         }
 
 
-@log
+@logged
 def create_alert_response(response: int, alert=None) -> dict:
     """
     Формирование ответа клиенту

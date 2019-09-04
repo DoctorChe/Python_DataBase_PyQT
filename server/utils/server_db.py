@@ -1,9 +1,3 @@
-# from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime, Table
-# from sqlalchemy.orm import sessionmaker, relationship
-# from sqlalchemy.ext.declarative import declarative_base
-# from server.utils.config_server import SERVER_DATABASE
-# import datetime
-
 from sqlalchemy import MetaData
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base

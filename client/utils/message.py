@@ -7,7 +7,10 @@ from Crypto.Random import get_random_bytes
 from utils.config_client import ENCODING, MSG_SIZE
 from utils.util import get_chunk
 
+from client.utils.decorators import logged
 
+
+@logged
 def send_message(socket, msg: dict):
     """
     Отправка сообщения
@@ -32,6 +35,7 @@ def send_message(socket, msg: dict):
     socket.send(compressed_message)
 
 
+@logged
 def receive_message(socket) -> dict:
     """
     Получение сообщения

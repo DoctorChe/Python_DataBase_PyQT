@@ -1,3 +1,4 @@
+# import logging
 import threading
 import time
 
@@ -9,16 +10,16 @@ from utils.metaclasses import ClientVerifier
 from utils.errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
 from utils.descriptors import CheckedHost, ClientName
 
-import logging
-from utils import client_log_config
-# from utils import client_log_config
-from utils.decorators import Log
-
-logger = logging.getLogger("client")
-log = Log(logger)
+# from client.__main__ import log
+# from utils import config_log_client
+# from utils import config_log_client
 
 
 # class Client(threading.Thread, metaclass=ClientVerifier):
+from client.utils.config_log_client import client_logger
+from client.utils.decorators import logged
+
+
 class Client(metaclass=ClientVerifier):
 
     _name = ClientName()
@@ -43,7 +44,7 @@ class Client(metaclass=ClientVerifier):
         if exc_type:
             if exc_type is not KeyboardInterrupt:
                 message = "Client stopped with error"
-        logging.info(message)
+        client_logger.info(message)
         self.close()
         return True
 
@@ -51,17 +52,12 @@ class Client(metaclass=ClientVerifier):
     def name(self):
         return self._name
 
-    @log
+    @logged
     def connect(self):
         try:
             self._socket.connect(self._host)
         except ConnectionRefusedError:
             # print("Connection refused. Server unavailable.")
-
-            # Заполняем лог
-            # res = "Connection refused. Server unavailable."
-            # logger.error(f"{res} - {self.connect.__name__}")
-
             return False
         return True
 
@@ -74,7 +70,7 @@ class Client(metaclass=ClientVerifier):
     def receive(self):
         return receive_message(self._socket)
 
-    @log
+    @logged
     def create_presence(self, status=None):
         """
         Создание ​​presence-сообщения
@@ -94,13 +90,9 @@ class Client(metaclass=ClientVerifier):
             presence[TYPE] = "status"
             presence[USER][STATUS] = status
 
-        # Заполняем лог
-        # res = f"- {presence}"
-        # logger.info(f"{res} - {self.create_presence.__name__}")
-
         return presence
 
-    @log
+    @logged
     def translate_message(self, response):
         """
         Разбор сообщения
@@ -122,10 +114,6 @@ class Client(metaclass=ClientVerifier):
         if code not in RESPONSE_CODES:
             raise ResponseCodeError(code)  # ошибка неверный код ответа
 
-        # Заполняем лог
-        res = f"args: ({response},)- {response}"
-        logger.info(f"{res} - {self.translate_message.__name__}")
-
         return response
 
     def read_messages(self):
@@ -142,6 +130,7 @@ class Client(metaclass=ClientVerifier):
             # elif MESSAGE in message:
             if MESSAGE in message:
                 print(message[MESSAGE])  # там должно быть сообщение
+                client_logger.info(f"Принято сообщение: {message}")
 
     def write_messages(self):
         """Клиент пишет сообщение в бесконечном цикле"""

@@ -2,18 +2,13 @@ import select
 import threading
 from typing import Tuple
 from socket import socket, AF_INET, SOCK_STREAM
+
 from utils.config_jim import TO
 from utils.config_server import WORKERS, MSG_SIZE
 from utils.metaclasses import ServerVerifier
 from utils.descriptors import CheckedHost
 
-import logging
-# from utils import server_log_config
-from utils import server_log_config
-from utils.decorators import Log
-
-logger = logging.getLogger("server")
-log = Log(logger)
+from utils.config_log_server import server_logger
 
 
 # class Server(threading.Thread, metaclass=ServerVerifier):
@@ -41,7 +36,7 @@ class Server(metaclass=ServerVerifier):
         if exc_type:
             if exc_type is not KeyboardInterrupt:
                 message = "Server stopped with error"
-        logging.info(message)
+        server_logger.info(message)
         return True
 
     def __new_listen_socket(self):
@@ -61,14 +56,13 @@ class Server(metaclass=ServerVerifier):
             pass  # timeout вышел
         else:
             self._clients.append(client)
-            logger.info(f"Установлено соедение с клиентом {client_address}")
-            print(f"Установлено соедение с клиентом {str(client_address)}")
+            server_logger.info(f"Установлено соедение с клиентом {client_address}")
 
     def read(self, sock):
         try:
             message = sock.recv(MSG_SIZE)
         except Exception:
-            logger.info(f"Клиент {sock.getpeername()} отключился от сервера.")
+            server_logger.info(f"Клиент {sock.getpeername()} отключился от сервера.")
             self._clients.remove(sock)
         else:
             if message:
@@ -81,7 +75,7 @@ class Server(metaclass=ServerVerifier):
             # TODO: сделать проверку: зарегистрирован ли клиент на сервере
             sock.send(message)
         except TypeError:
-            logger.info(f"Связь с клиентом с именем {message[TO]} была потеряна")
+            server_logger.info(f"Связь с клиентом с именем {message[TO]} была потеряна")
             try:
                 # self._clients.remove(self.names[message[TO]])
                 self._clients.remove(sock)
@@ -92,7 +86,7 @@ class Server(metaclass=ServerVerifier):
     def run(self):
         self.__new_listen_socket()  # Инициализация сокета
 
-        print("Сервер запущен")
+        server_logger.info("Сервер запущен")
 
         # if self.names is None:
         #     self.names = dict()

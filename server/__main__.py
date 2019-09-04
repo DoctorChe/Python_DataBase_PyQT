@@ -1,10 +1,11 @@
 import os
 
 from server_app import Server
-from utils.config_server import INSTALLED_MODULES, BASE_DIR
-from utils.hendlers import handle_process_client_message
 from utils.parser import create_parser
+from utils.hendlers import handle_process_client_message
 from utils.server_db import Base
+from utils.config_server import INSTALLED_MODULES, BASE_DIR
+
 
 parser = create_parser()
 

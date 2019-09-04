@@ -1,9 +1,11 @@
 from server.utils.config_jim import MESSAGE, OK
 from server.auth.models import User
+from server.utils.decorators import logged
 from server.utils.protocol import create_alert_response
 from server.utils.server_db import Session
 
 
+@logged
 def user_login_controller(request):
     name = request[MESSAGE]
     session = Session()

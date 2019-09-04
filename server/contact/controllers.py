@@ -1,10 +1,12 @@
 from server.utils.config_jim import MESSAGE, OK, CONFLICT, ACCEPTED
 from server.auth.models import User
 from server.contact.models import Contact
+from server.utils.decorators import logged
 from server.utils.protocol import create_error_response, create_alert_response
 from server.utils.server_db import Session
 
 
+@logged
 def get_contact_controller(request):
     request_list = request[MESSAGE].split()
     try:
@@ -33,6 +35,7 @@ def get_contact_controller(request):
     return response
 
 
+@logged
 def get_contacts_controller(request):
     contact_list = []
     if request[MESSAGE]:
@@ -56,6 +59,7 @@ def get_contacts_controller(request):
     return response
 
 
+@logged
 def add_contact_controller(request):
     request_list = request[MESSAGE].split()
     try:
@@ -98,6 +102,7 @@ def add_contact_controller(request):
     return response
 
 
+@logged
 def remove_contact_controller(request):
     request_list = request[MESSAGE].split()
     try:
@@ -137,6 +142,7 @@ def remove_contact_controller(request):
     return response
 
 
+@logged
 def update_contact_controller(request):
     print("Добавление контакта")
     request_list = request[MESSAGE].split()

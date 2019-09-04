@@ -1,13 +1,13 @@
 from functools import reduce
 
+from server.utils.decorators import logged
 from server.utils.server_db import Session
-# from decorators import logged
 from server.utils.config_jim import MESSAGE, OK, WRONG_REQUEST
 from server.utils.protocol import create_response, create_error_response
 from .models import Message
 
 
-# @logged
+@logged
 def echo_controller(request):
     # data = request.get(MESSAGE)
     data = request[MESSAGE]
@@ -19,6 +19,7 @@ def echo_controller(request):
     return create_response(request, OK, data)
 
 
+@logged
 def delete_message_controller(request):
     # message_id = request.get("message_id")
     # message_id = request.get(MESSAGE)
@@ -31,6 +32,7 @@ def delete_message_controller(request):
     return create_response(request, OK)
 
 
+@logged
 def update_message_controller(request):
     # message_id = request.get("message_id")
     # message_data = request.get("message_data")
@@ -51,7 +53,7 @@ def update_message_controller(request):
         return create_response(request, OK)
 
 
-# @logged
+@logged
 def get_messages_controller(request):
     session = Session()
     messages = reduce(

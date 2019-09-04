@@ -1,7 +1,7 @@
 import logging
 import os
 
-from utils.config_client import ENCODING
+from .config_client import ENCODING
 
 # Родительская папка от папки где лежит настоящий файл + вложенная папка logs
 LOG_FOLDER_PATH = os.path.join(
@@ -38,6 +38,10 @@ client_handler.setFormatter(formatter)
 
 # Связываем логгер с обработчиком
 client_logger.addHandler(client_handler)
+
+client_handler_stream = logging.StreamHandler()
+client_handler_stream.setFormatter(formatter)
+client_logger.addHandler(client_handler_stream)
 
 
 # отладка

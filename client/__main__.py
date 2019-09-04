@@ -1,9 +1,11 @@
 from socket import socket, AF_INET, SOCK_STREAM
 
-from client_app import Client
+from client.client_app import Client
 from utils.parser import create_parser
 from utils.protocol import create_message
 from utils.config_jim import PRESENCE, RESPONSE, OK, GET_CONTACTS, ACCEPTED, ALERT
+
+from client.utils.config_log_client import client_logger
 
 parser = create_parser()
 
@@ -24,16 +26,16 @@ with Client(
         response = client.receive()  # получаем ответ от сервера
         response = client.translate_message(response)  # разбираем сообщение от сервера
         if response[RESPONSE] == OK:
-            print("Соединение установлено.")
+            client_logger.info("Соединение с сервером установлено")
             message = create_message(GET_CONTACTS, account_name)  # запрашиваем список контактов
             client.send(message)  # отправляем сообщение серверу
             response = client.receive()  # получаем ответ от сервера
             response = client.translate_message(response)  # разбираем сообщение от сервера
             if response[RESPONSE] == ACCEPTED:
                 if ALERT in response:
-                    print(f"Список контактов:\n{response[ALERT]}")
+                    client_logger.info(f"Плучен список контактов: {response[ALERT]}")
                 else:
-                    print("Список контактов пуст")
+                    client_logger.info("Список контактов пуст")
             # print("Формат сообщения:\n"
             #       "message <получатель> <текст>")
             client.run()
