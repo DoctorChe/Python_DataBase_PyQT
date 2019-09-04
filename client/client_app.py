@@ -1,25 +1,19 @@
-# import logging
 import threading
 import time
 
 from utils.protocol import create_message
 from utils.config_jim import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, RESPONSE_CODES,
-                              MESSAGE, ERROR, ALERT)
+                              MESSAGE, ERROR, ALERT, DATA)
 from utils.message import send_message, receive_message
 from utils.metaclasses import ClientVerifier
 from utils.errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
 from utils.descriptors import CheckedHost, ClientName
 
-# from client.__main__ import log
-# from utils import config_log_client
-# from utils import config_log_client
-
-
-# class Client(threading.Thread, metaclass=ClientVerifier):
 from client.utils.config_log_client import client_logger
 from client.utils.decorators import logged
 
 
+# class Client(threading.Thread, metaclass=ClientVerifier):
 class Client(metaclass=ClientVerifier):
 
     _name = ClientName()
@@ -122,15 +116,14 @@ class Client(metaclass=ClientVerifier):
         """
         while True:
             message = self.receive()  # получаем ответ от сервера
-            if RESPONSE in message:
-                if ERROR in message:
-                    print(f"Ошибка {message[RESPONSE]} - {message[ERROR]}")
-                if ALERT in message:
-                    print(message[ALERT])
-            # elif MESSAGE in message:
-            if MESSAGE in message:
-                print(message[MESSAGE])  # там должно быть сообщение
-                client_logger.info(f"Принято сообщение: {message}")
+            client_logger.info(f"Принято сообщение: {message}")
+            if RESPONSE in message and DATA in message:
+                if ERROR in message[DATA]:
+                    print(f"Ошибка {message[RESPONSE]} - {message[DATA][ERROR]}")
+                if ALERT in message[DATA]:
+                    print(message[DATA][ALERT])
+                if MESSAGE in message[DATA]:
+                    print(message[DATA][MESSAGE])  # там должно быть сообщение
 
     def write_messages(self):
         """Клиент пишет сообщение в бесконечном цикле"""

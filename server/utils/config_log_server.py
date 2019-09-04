@@ -41,8 +41,8 @@ if not server_logger.__dict__["handlers"]:
     server_logger.addHandler(server_handler_stream)
 
 # Устанавливаем уровень сообщений логгера
-server_logger.setLevel(logging.INFO)
-# server_logger.setLevel(logging.DEBUG)
+# server_logger.setLevel(logging.INFO)
+server_logger.setLevel(logging.DEBUG)
 
 
 # отладка

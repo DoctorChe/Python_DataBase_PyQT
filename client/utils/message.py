@@ -55,9 +55,10 @@ def receive_message(socket) -> dict:
         decrypted_message = cipher.decrypt_and_verify(encrypted_message, tag)
         message = json.loads(decrypted_message.decode(ENCODING))
     except OSError:
-        return {
-            "response": 499,
-            "error": "Client Closed Request"
-        }
+        pass
+        # return {
+        #     "response": 499,
+        #     "error": "Client Closed Request"
+        # }
     else:
         return message

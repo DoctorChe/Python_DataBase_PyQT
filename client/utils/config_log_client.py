@@ -28,7 +28,8 @@ client_logger = logging.getLogger("client")
 client_handler = logging.FileHandler(CLIENT_LOG_FILE_PATH, encoding=ENCODING)
 
 # Устанавливаем уровень сообщений обработчика
-client_logger.setLevel(logging.INFO)
+# client_logger.setLevel(logging.INFO)
+client_logger.setLevel(logging.DEBUG)
 
 # Создаём объект форматирования
 formatter = logging.Formatter("%(asctime)-10s %(levelname)s %(module)s %(message)s")

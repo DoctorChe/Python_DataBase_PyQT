@@ -5,6 +5,8 @@ TIME = "time"  # время запроса
 TYPE = "type"  # необязательное поле
 USER = "user"  # данные о пользователе - клиенте (вложенный словарь)
 ACCOUNT_NAME = "account_name"  # имя пользователя - чата
+LOGIN = "login"  # логин пользователя (может отличаться от имени пользователя)
+PASSWORD = "password"  # пароль пользователя
 STATUS = "status"  # статус пользователя
 RESPONSE = "response"  # код ответа
 ERROR = "error"  # текст ошибки
@@ -13,7 +15,8 @@ TO = "message_to"  # получатель
 FROM = "account_name"  # отправитель
 MESSAGE = "text"  # текст сообщения
 INFO = "info"  # информация о контакте
-DATA = "data"  # сервисное сообщение (текст ошибки и т.д.)
+# DATA = "data"  # сервисное сообщение (текст ошибки и т.д.)
+DATA = "data"  # данные пересылаемые в сообщении (вложенный словарь)
 
 # Значения (Методы протокола (actions))
 PRESENCE = "presence"  # присутствие. Сервисное сообщение для извещения сервера о присутствии клиента online
@@ -29,6 +32,10 @@ GET_CONTACT = "get_contact"  # получить информацию о конт
 ADD_CONTACT = "add_contact"  # добавить контакт в список контактов
 DEL_CONTACT = "del_contact"  # удалить контакт из списка контактов
 UPDATE_CONTACT = "update_contact"  # обновить контакт в списке контактов
+
+LOGIN = "login"  # вход
+LOGOUT = "logout"  # выход
+REGISTRATION = "registration"  # регистрация
 
 ECHO = "echo"  # эхо-сообщение
 

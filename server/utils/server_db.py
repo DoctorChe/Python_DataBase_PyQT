@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 from sqlalchemy import MetaData
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -9,6 +11,18 @@ engine = create_engine(SERVER_DATABASE)
 Base = declarative_base(metadata=MetaData(bind=engine))
 Session = sessionmaker(bind=engine)
 
+
+@contextmanager
+def session_scope():
+    session = Session()
+    try:
+        yield session
+        session.commit()
+    except:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 # # Класс - серверная база данных:
 # class ServerStorage:

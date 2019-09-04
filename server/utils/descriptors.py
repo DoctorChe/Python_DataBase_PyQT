@@ -3,15 +3,6 @@ import socket
 
 from server.utils.config_log_server import server_logger
 
-# import logging
-# from utils import config_log_server
-# from utils import config_log_server
-# from utils.decorators import Log
-
-
-# logger = logging.getLogger("server")
-# log = Log(logger)
-
 
 class CheckedHost:
     """Дескриптор для проверки сокета"""
@@ -22,7 +13,6 @@ class CheckedHost:
         # Проверяем адрес
         if not check_ip(hostname_to_ip(ip)):
             server_logger.critical(
-            # logger.critical(
                 f"Попытка запуска клиента с неподходящим ip-адресом: {ip}. Клиент завершается.")
             raise ValueError(
                 f"Попытка запуска клиента с неподходящим ip-адресом: {ip}. Клиент завершается.")
@@ -32,11 +22,9 @@ class CheckedHost:
             # Заполняем лог
             res = f"Попытка запуска клиента с портом не являющимся целым числом: {port}. Клиент завершается."
             server_logger.error(f"{res} - {port}")
-            # logger.critical(f"{res} - {port}")
             raise TypeError(f"Попытка запуска клиента с портом не являющимся целым числом: {port}. Клиент завершается.")
         if not 1023 < port < 65536:
             server_logger.critical(
-            # logger.critical(
                 f"Попытка запуска клиента с неподходящим номером порта: {port}. "
                 f"Допустимы адреса с 1024 до 65535. Клиент завершается.")
             raise ValueError(

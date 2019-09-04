@@ -1,6 +1,6 @@
 import time
 
-from utils.config_jim import ACTION, TIME, MESSAGE
+from utils.config_jim import ACTION, TIME, MESSAGE, DATA
 
 
 # Функция создаёт текстовое сообщение
@@ -10,5 +10,5 @@ def create_message(action, text):
         TIME: time.time(),
         # TO: message_to,
         # FROM: message_from,
-        MESSAGE: text
+        DATA: {MESSAGE: text}
     }

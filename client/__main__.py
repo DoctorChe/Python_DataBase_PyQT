@@ -21,9 +21,12 @@ with Client(
         account_name
 ) as client:
     if client.connect():
-        message = create_message(PRESENCE, account_name)  # формируем presense сообщение
+        message = create_message(PRESENCE, account_name)  # формируем presenсe сообщение
+        # client_logger.debug(f"Сформировано presenсe-сообщение: {message}")
         client.send(message)  # отправляем сообщение серверу
+        # client_logger.debug(f"Presenсe-сообщение отослано серверу: {message}")
         response = client.receive()  # получаем ответ от сервера
+        # client_logger.debug(f"Получен ответ от сервера на presenсe-сообщение: {response}")
         response = client.translate_message(response)  # разбираем сообщение от сервера
         if response[RESPONSE] == OK:
             client_logger.info("Соединение с сервером установлено")
