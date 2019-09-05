@@ -1,4 +1,4 @@
-from utils.config_jim import RESPONSE_CODES, RESPONSE, ERROR, ALERT, ACTION, TIME, DATA
+from utils.config_jim import RESPONSE_CODES, RESPONSE, ACTION, TIME, DATA
 from utils.config_log_server import server_logger
 from utils.decorators import logged
 
@@ -37,51 +37,10 @@ def common_check_message(msg: dict) -> bool:
 
 @logged
 def create_response(request: dict, response_code: int, data=None) -> dict:
-    return {
-        ACTION: request[ACTION],
-        TIME: request[TIME],
-        RESPONSE: response_code,
-        DATA: data
-    }
-
-
-@logged
-def create_error_response(response: int, error=None) -> dict:
-    """
-    Формирование ответа клиенту
-    :param response: код ответа
-    :param error: текст ошибки
-    :return: словарь ответа
-    """
-
-    if isinstance(error, str):
-        if response in RESPONSE_CODES:
-            return {
-                RESPONSE: response,
-                ERROR: error
-            }
-    else:
+    if response_code in RESPONSE_CODES:
         return {
-            RESPONSE: response
-        }
-
-
-@logged
-def create_alert_response(response: int, alert=None) -> dict:
-    """
-    Формирование ответа клиенту
-    :param response: код ответа
-    :param alert: текст сообщения
-    :return: словарь ответа
-    """
-
-    if isinstance(alert, str):
-        if response in RESPONSE_CODES:
-            return {
-                RESPONSE: response,
-                ALERT: alert
-            }
-    else:
-        return {
-            RESPONSE: response
+            ACTION: request[ACTION],
+            TIME: request[TIME],
+            RESPONSE: response_code,
+            DATA: data
         }

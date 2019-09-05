@@ -1,4 +1,4 @@
-from server.utils.config_jim import MESSAGE, OK, CONFLICT, ACCEPTED, DATA, ERROR, ALERT
+from server.utils.config_jim import MESSAGE, OK, CONFLICT, ACCEPTED, DATA
 from server.auth.models import User
 from server.contact.models import Contact
 from server.utils.decorators import logged
@@ -14,7 +14,7 @@ def get_contact_controller(request):
         contact_name = request_list[1]
     except IndexError:
         print("Не заданы имя пользователя или контакта")
-        response = create_response(request, CONFLICT, {ERROR: "Не заданы имя пользователя или контакта"})
+        response = create_response(request, CONFLICT, {MESSAGE: "Не заданы имя пользователя или контакта"})
     else:
         with session_scope() as session:
             user = session.query(User).filter_by(name=user_name).first()
@@ -28,19 +28,19 @@ def get_contact_controller(request):
                     response = create_response(
                         request,
                         ACCEPTED,
-                        {ALERT: f"Name: {contact_exist.name} info:{contact_exist.info}"}
+                        {MESSAGE: f"Name: {contact_exist.name} info:{contact_exist.info}"}
                     )
                 else:
                     response = create_response(
                         request,
                         ACCEPTED,
-                        {ALERT: "Такого контакта не существует в контакт листе"}
+                        {MESSAGE: "Такого контакта не существует в контакт листе"}
                     )
             else:
                 response = create_response(
                     request,
                     ACCEPTED,
-                    {ALERT: "Такого пользователя или контакта не существует"}
+                    {MESSAGE: "Такого пользователя или контакта не существует"}
                 )
     return response
 
@@ -58,14 +58,14 @@ def get_contacts_controller(request):
                 for contact in contacts:
                     contact_list.append(contact.name)
                 if contact_list:
-                    response = create_response(request, ACCEPTED, {ALERT: str(contact_list)})
+                    response = create_response(request, ACCEPTED, {MESSAGE: str(contact_list)})
                 else:
-                    response = create_response(request, ACCEPTED, {ALERT: "Контакт лист пуст"})
+                    response = create_response(request, ACCEPTED, {MESSAGE: "Контакт лист пуст"})
             else:
-                response = create_response(request, CONFLICT, {ERROR: f"Клиент {user_name} не зарегистрирован"})
+                response = create_response(request, CONFLICT, {MESSAGE: f"Клиент {user_name} не зарегистрирован"})
     else:
         print("Не задано имя пользователя")
-        response = create_response(request, CONFLICT, {ERROR: "Не задано имя пользователя"})
+        response = create_response(request, CONFLICT, {MESSAGE: "Не задано имя пользователя"})
     return response
 
 
@@ -81,7 +81,7 @@ def add_contact_controller(request):
             info = ""
     except IndexError:
         print("Не заданы имя пользователя или контакта")
-        response = create_response(request, CONFLICT, {ERROR: "Не заданы имя пользователя или контакта"})
+        response = create_response(request, CONFLICT, {MESSAGE: "Не заданы имя пользователя или контакта"})
     else:
         with session_scope() as session:
             user = session.query(User).filter_by(name=user_name).first()
@@ -94,7 +94,7 @@ def add_contact_controller(request):
                     response = create_response(
                         request,
                         ACCEPTED,
-                        {ALERT: "Contact already exists"}
+                        {MESSAGE: "Contact already exists"}
                     )
                 else:
                     new_contact = Contact(name=contact.name, user_id=user.id, info=info)
@@ -104,7 +104,7 @@ def add_contact_controller(request):
                         request,
                         ACCEPTED,
                         # f"Contact '{contact_name}' added to {user_name}'s contact list"
-                        {ALERT: "Contact added"}
+                        {MESSAGE: "Contact added"}
                     )
     return response
 
@@ -117,7 +117,7 @@ def remove_contact_controller(request):
         contact_name = request_list[1]
     except IndexError:
         print("Не заданы имя пользователя или контакта")
-        response = create_response(request, CONFLICT, {ERROR: "Не заданы имя пользователя или контакта"})
+        response = create_response(request, CONFLICT, {MESSAGE: "Не заданы имя пользователя или контакта"})
     else:
         with session_scope() as session:
             user = session.query(User).filter_by(name=user_name).first()
@@ -134,7 +134,7 @@ def remove_contact_controller(request):
                         request,
                         ACCEPTED,
                         # f"Contact '{contact_name}' removed from {user_name}'s contact list"
-                        {ALERT: "Contact removed"}
+                        {MESSAGE: "Contact removed"}
                     )
                 else:
                     print(f"Contact '{contact_name}' does not exist at {user_name}'s contact list")
@@ -142,10 +142,10 @@ def remove_contact_controller(request):
                         request,
                         ACCEPTED,
                         # f"Contact '{contact_name}' does not exist at {user_name}'s contact list"
-                        {ALERT: "Contact does not exist"}
+                        {MESSAGE: "Contact does not exist"}
                     )
             else:
-                response = create_response(request, OK, {ALERT: "Такого пользователя или контакта не существует"})
+                response = create_response(request, OK, {MESSAGE: "Такого пользователя или контакта не существует"})
     return response
 
 
@@ -162,7 +162,7 @@ def update_contact_controller(request):
             info = ""
     except IndexError:
         print("Не заданы имя пользователя или контакта")
-        response = create_response(request, CONFLICT, {ERROR: "Не заданы имя пользователя или контакта"})
+        response = create_response(request, CONFLICT, {MESSAGE: "Не заданы имя пользователя или контакта"})
     else:
         with session_scope() as session:
             user = session.query(User).filter_by(name=user_name).first()
@@ -176,7 +176,7 @@ def update_contact_controller(request):
                         request,
                         ACCEPTED,
                         # f"Contact '{contact_name}' updated at {user_name}'s contact list"
-                        {ALERT: "Contact updated"}
+                        {MESSAGE: "Contact updated"}
                     )
                 else:
                     print(f"Contact '{contact_name}' does not exist at {user_name}'s contact list")
@@ -184,6 +184,6 @@ def update_contact_controller(request):
                         request,
                         ACCEPTED,
                         # f"Contact '{contact_name}' does not exist at {user_name}'s contact list"
-                        {ALERT: "Contact does not exist"}
+                        {MESSAGE: "Contact does not exist"}
                     )
     return response

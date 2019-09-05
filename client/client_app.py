@@ -2,8 +2,7 @@ import threading
 import time
 
 from utils.protocol import create_message
-from utils.config_jim import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, RESPONSE_CODES,
-                              MESSAGE, ERROR, ALERT, DATA)
+from utils.config_jim import RESPONSE, RESPONSE_CODES, MESSAGE, DATA
 from utils.message import send_message, receive_message
 from utils.metaclasses import ClientVerifier
 from utils.errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
@@ -64,27 +63,27 @@ class Client(metaclass=ClientVerifier):
     def receive(self):
         return receive_message(self._socket)
 
-    @logged
-    def create_presence(self, status=None):
-        """
-        Создание ​​presence-сообщения
-        :param status: статус пользователя
-        :return: словарь сообщения
-        """
-
-        unix_timestamp = time.time()
-        presence = {
-            ACTION: PRESENCE,
-            TIME: unix_timestamp,
-            USER: {
-                ACCOUNT_NAME: self.name,
-            }
-        }
-        if status:
-            presence[TYPE] = "status"
-            presence[USER][STATUS] = status
-
-        return presence
+    # @logged
+    # def create_presence(self, status=None):
+    #     """
+    #     Создание ​​presence-сообщения
+    #     :param status: статус пользователя
+    #     :return: словарь сообщения
+    #     """
+    #
+    #     unix_timestamp = time.time()
+    #     presence = {
+    #         ACTION: PRESENCE,
+    #         TIME: unix_timestamp,
+    #         USER: {
+    #             ACCOUNT_NAME: self.name,
+    #         }
+    #     }
+    #     # if status:
+    #     #     presence[TYPE] = "status"
+    #     #     presence[USER][STATUS] = status
+    #
+    #     return presence
 
     @logged
     def translate_message(self, response):
@@ -118,11 +117,9 @@ class Client(metaclass=ClientVerifier):
             message = self.receive()  # получаем ответ от сервера
             client_logger.info(f"Принято сообщение: {message}")
             if RESPONSE in message and DATA in message:
-                if ERROR in message[DATA]:
-                    print(f"Ошибка {message[RESPONSE]} - {message[DATA][ERROR]}")
-                if ALERT in message[DATA]:
-                    print(message[DATA][ALERT])
-                if MESSAGE in message[DATA]:
+                if message[RESPONSE] in range(400, 600) and MESSAGE in message[DATA]:
+                    print(f"Ошибка {message[RESPONSE]} - {message[DATA][MESSAGE]}")
+                elif message[RESPONSE] in range(100, 400) and MESSAGE in message[DATA]:
                     print(message[DATA][MESSAGE])  # там должно быть сообщение
 
     def write_messages(self):

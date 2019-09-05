@@ -3,7 +3,7 @@ import threading
 from typing import Tuple
 from socket import socket, AF_INET, SOCK_STREAM
 
-from utils.config_jim import TO
+# from utils.config_jim import TO
 from utils.config_server import WORKERS, MSG_SIZE
 from utils.metaclasses import ServerVerifier
 from utils.descriptors import CheckedHost
@@ -75,7 +75,8 @@ class Server(metaclass=ServerVerifier):
             # TODO: сделать проверку: зарегистрирован ли клиент на сервере
             sock.send(message)
         except TypeError:
-            server_logger.info(f"Связь с клиентом с именем {message[TO]} была потеряна")
+            # server_logger.info(f"Связь с клиентом с именем {message[TO]} была потеряна")
+            server_logger.info(f"Связь с клиентом {sock} была потеряна")
             try:
                 # self._clients.remove(self.names[message[TO]])
                 self._clients.remove(sock)

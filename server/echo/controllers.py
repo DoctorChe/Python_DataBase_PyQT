@@ -2,7 +2,7 @@ from functools import reduce
 
 from server.utils.decorators import logged
 from server.utils.server_db import session_scope
-from server.utils.config_jim import MESSAGE, OK, WRONG_REQUEST, DATA, ERROR
+from server.utils.config_jim import OK, WRONG_REQUEST, DATA, MESSAGE
 from server.utils.protocol import create_response
 from .models import Message
 
@@ -37,7 +37,7 @@ def update_message_controller(request):
         message_data = " ".join(request_list[1:])
     except IndexError:
         # print("Не задан id или текст сообщения")
-        return create_response(request, WRONG_REQUEST, {ERROR: "Не задан id или текст сообщения"})
+        return create_response(request, WRONG_REQUEST, {MESSAGE: "Не задан id или текст сообщения"})
     else:
         with session_scope() as session:
             message = session.query(Message).filter_by(id=message_id).first()
@@ -55,4 +55,4 @@ def get_messages_controller(request):
             session.query(Message).all(),
             []
         )
-    return create_response(request, OK, messages)
+        return create_response(request, OK, {MESSAGE: str(messages)})
