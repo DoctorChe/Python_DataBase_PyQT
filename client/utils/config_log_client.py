@@ -1,7 +1,7 @@
 import logging
 import os
 
-from client.utils.config_client import ENCODING
+from .config_client import ENCODING
 
 # Родительская папка от папки где лежит настоящий файл + вложенная папка logs
 LOG_FOLDER_PATH = os.path.join(
@@ -28,7 +28,8 @@ client_logger = logging.getLogger("client")
 client_handler = logging.FileHandler(CLIENT_LOG_FILE_PATH, encoding=ENCODING)
 
 # Устанавливаем уровень сообщений обработчика
-client_logger.setLevel(logging.INFO)
+# client_logger.setLevel(logging.INFO)
+client_logger.setLevel(logging.DEBUG)
 
 # Создаём объект форматирования
 formatter = logging.Formatter("%(asctime)-10s %(levelname)s %(module)s %(message)s")
@@ -38,6 +39,10 @@ client_handler.setFormatter(formatter)
 
 # Связываем логгер с обработчиком
 client_logger.addHandler(client_handler)
+
+client_handler_stream = logging.StreamHandler()
+client_handler_stream.setFormatter(formatter)
+client_logger.addHandler(client_handler_stream)
 
 
 # отладка

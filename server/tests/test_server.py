@@ -6,7 +6,7 @@ from server.utils.protocol import common_check_message
 
 sys.path.append(os.path.join(os.getcwd(), ".."))
 
-from jim.config_jim import TIME, ACTION, PRESENCE, STATUS
+from server.utils.config_jim import TIME, ACTION, PRESENCE, STATUS
 from server.utils.config_server import DEFAULT_SERVER_IP, DEFAULT_PORT, SERVER_DATABASE
 from server.server_app import Server
 
@@ -30,7 +30,7 @@ class TestServerInstance(unittest.TestCase):
 #         server = Server((DEFAULT_SERVER_IP, DEFAULT_PORT), SERVER_DATABASE)
 #         # response = server.create_error_response(msg)
 #         response = server.handle_process_client_message(msg)
-#         self.assertEqual(response, {RESPONSE: 400, ERROR: 'Неправильный запрос/JSON объект'})
+#         self.assertEqual(response, {RESPONSE: 400, MESSAGE: 'Неправильный запрос/JSON объект'})
 #
 #     # ключ action имеет значение не presence
 #     def test_presence_response(self):
@@ -40,7 +40,7 @@ class TestServerInstance(unittest.TestCase):
 #         }
 #         server = Server((DEFAULT_SERVER_IP, DEFAULT_PORT), SERVER_DATABASE)
 #         response = server.create_error_response(msg)
-#         self.assertEqual(response, {RESPONSE: 400, ERROR: 'Неправильный запрос/JSON объект'})
+#         self.assertEqual(response, {RESPONSE: 400, MESSAGE: 'Неправильный запрос/JSON объект'})
 #
 #     # нет ключа time
 #     def test_time_response(self):
@@ -49,7 +49,7 @@ class TestServerInstance(unittest.TestCase):
 #         }
 #         server = Server((DEFAULT_SERVER_IP, DEFAULT_PORT), SERVER_DATABASE)
 #         response = server.create_error_response(msg)
-#         self.assertEqual(response, {RESPONSE: 400, ERROR: 'Неправильный запрос/JSON объект'})
+#         self.assertEqual(response, {RESPONSE: 400, MESSAGE: 'Неправильный запрос/JSON объект'})
 #
 #     # неправильное время
 #     def test_time_incorrect_response(self):
@@ -59,7 +59,7 @@ class TestServerInstance(unittest.TestCase):
 #         }
 #         server = Server((DEFAULT_SERVER_IP, DEFAULT_PORT), SERVER_DATABASE)
 #         response = server.create_error_response(msg)
-#         self.assertEqual(response, {RESPONSE: 400, ERROR: 'Неправильный запрос/JSON объект'})
+#         self.assertEqual(response, {RESPONSE: 400, MESSAGE: 'Неправильный запрос/JSON объект'})
 #
 #     # правильное время
 #     def test_time_correct_response(self):

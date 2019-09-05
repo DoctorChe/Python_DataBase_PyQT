@@ -1,12 +1,6 @@
-from jim.config_jim import RESPONSE_CODES, RESPONSE, ERROR, ALERT, ACTION, TIME, MSG, MESSAGE, FROM, TO, DATA
-
-import logging
-# from server.utils import server_log_config
-from server.utils import server_log_config
-from server.utils.decorators import Log
-
-logger = logging.getLogger("server")
-log = Log(logger)
+from utils.config_jim import RESPONSE_CODES, RESPONSE, ACTION, TIME, DATA
+from utils.config_log_server import server_logger
+from utils.decorators import logged
 
 
 def common_check_message(msg: dict) -> bool:
@@ -19,17 +13,21 @@ def common_check_message(msg: dict) -> bool:
     def check_length(msg: dict) -> bool:
         if len(str(msg)) <= 640:
             return True
+        # server_logger.error("Message length more than 640 symbols")
+        server_logger.error("Длина сообщения более чем 640 символов")
         return False
 
     def check_action(msg: dict) -> bool:
         # if ACTION in msg and len(msg[ACTION]) <= 15:
         if ACTION in msg and len(msg[ACTION]) <= 25:
             return True
+        server_logger.error(f"Атрибут {ACTION} отсутствует или он длиннее 25 символов")
         return False
 
     def check_time(msg: dict) -> bool:
         if TIME in msg and isinstance(msg[TIME], float):
             return True
+        server_logger.error(f"Атрибут {TIME} отсутствует или имеет неверный тип")
         return False
 
     if check_length(msg) and check_action(msg) and check_time(msg):
@@ -37,53 +35,12 @@ def common_check_message(msg: dict) -> bool:
     return False
 
 
-@log
-def create_response(request: dict, response_code: int, msg=None) -> dict:
-    return {
-        ACTION: request[ACTION],
-        TIME: request[TIME],
-        RESPONSE: response_code,
-        MESSAGE: msg
-    }
-
-
-@log
-def create_error_response(response: int, error=None) -> dict:
-    """
-    Формирование ответа клиенту
-    :param response: код ответа
-    :param error: текст ошибки
-    :return: словарь ответа
-    """
-
-    if isinstance(error, str):
-        if response in RESPONSE_CODES:
-            return {
-                RESPONSE: response,
-                ERROR: error
-            }
-    else:
+@logged
+def create_response(request: dict, response_code: int, data=None) -> dict:
+    if response_code in RESPONSE_CODES:
         return {
-            RESPONSE: response
-        }
-
-
-@log
-def create_alert_response(response: int, alert=None) -> dict:
-    """
-    Формирование ответа клиенту
-    :param response: код ответа
-    :param alert: текст сообщения
-    :return: словарь ответа
-    """
-
-    if isinstance(alert, str):
-        if response in RESPONSE_CODES:
-            return {
-                RESPONSE: response,
-                ALERT: alert
-            }
-    else:
-        return {
-            RESPONSE: response
+            ACTION: request[ACTION],
+            TIME: request[TIME],
+            RESPONSE: response_code,
+            DATA: data
         }

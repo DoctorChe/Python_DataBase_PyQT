@@ -32,11 +32,17 @@ formatter = logging.Formatter("%(asctime)-10s %(levelname)s %(module)s %(message
 # Cвязываем обработчик с форматтером
 server_handler.setFormatter(formatter)
 
+server_handler_stream = logging.StreamHandler()
+server_handler_stream.setFormatter(formatter)
+
 # Связываем логгер с обработчиком
-server_logger.addHandler(server_handler)
+if not server_logger.__dict__["handlers"]:
+    server_logger.addHandler(server_handler)
+    server_logger.addHandler(server_handler_stream)
 
 # Устанавливаем уровень сообщений логгера
-server_logger.setLevel(logging.INFO)
+# server_logger.setLevel(logging.INFO)
+server_logger.setLevel(logging.DEBUG)
 
 
 # отладка

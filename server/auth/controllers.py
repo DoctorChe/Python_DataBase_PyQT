@@ -1,27 +1,91 @@
-from jim.config_jim import MESSAGE, OK
-from server.auth.models import User
-from server.utils.protocol import create_alert_response
-from server.utils.server_db import Session
+import hmac
+from datetime import datetime
+
+from server.utils.config_jim import OK, DATA, MESSAGE, WRONG_REQUEST, TIME, PASSWORD, LOGIN
+from server.auth.models import User, Session
+from server.utils.decorators import logged
+from server.utils.protocol import create_response
+from server.utils.server_db import session_scope
 
 
+@logged
 def user_login_controller(request):
-    name = request[MESSAGE]
-    session = Session()
-    # user = session.query(User).filter_by(name=name).first()
-    result = session.query(User).filter_by(name=name)
+    name = request[DATA][MESSAGE]
+    with session_scope() as session:
+        result = session.query(User).filter_by(name=name)
 
-    # Если имя пользователя уже присутствует в таблице, обновляем время последнего входа
-    if result.count():
-        user = result.first()
-        # user.last_login = datetime.datetime.now()
-    # Если нету, то создаздаём нового пользователя
-    else:
-        user = User(name=name)
-        session.add(user)
-        session.commit()
-        session.close()
-    response = create_alert_response(OK)
+        # Если имя пользователя уже присутствует в таблице, обновляем время последнего входа
+        if result.count():
+            user = result.first()
+            # user.last_login = datetime.datetime.now()
+        # Если нету, то создаздаём нового пользователя
+        else:
+            user = User(name=name)
+            session.add(user)
+    # response = create_response(request, OK, {MESSAGE: ""})
+    response = create_response(request, OK)
     # else:
     #     # TODO: отработать ситуацию, если имя пользователя уже занято
-    #     response = create_error_response(CONFLICT, "Имя пользователя уже занято.")
     return response
+
+
+def login_controller(request):
+    errors = {}
+    is_valid = True
+    data = request[DATA]
+
+    if TIME not in request:
+        errors.update({TIME: "Attribute is required"})
+        is_valid = False
+    if PASSWORD not in data:
+        errors.update({PASSWORD: "Attribute is required"})
+        is_valid = False
+    if LOGIN not in data:
+        errors.update({LOGIN: 'Attribute is required'})
+        is_valid = False
+
+    if not is_valid:
+        # return create_response(request, WRONG_REQUEST, {"errors": errors})
+        return create_response(request, WRONG_REQUEST, {MESSAGE: errors})
+
+    # user = authenticate(data.get('login'), data.get('password'))
+    user = authenticate(data[LOGIN], data[PASSWORD])
+
+    if user:
+        token = login(request, user)
+        return create_response(request, OK, {'token': token})
+
+    return create_response(request, WRONG_REQUEST, "Enter correct login or password")
+
+
+def registration_controller(request):
+    errors = {}
+    is_valid = True
+    data = request[DATA]
+
+    if "password" not in data:
+        errors.update({"password": "Attribute is required"})
+        is_valid = False
+    if "login" not in data:
+        errors.update({"login": "Attribute is required"})
+        is_valid = False
+
+    if not is_valid:
+        return create_response(request, WRONG_REQUEST, {"errors": errors})
+
+    hmac_obj = hmac.new(SECRET_KEY.encode(), data.get("password").encode())
+    password_digest = hmac_obj.hexdigest()
+
+    with session_scope() as db_session:
+        user = User(name=data.get("login"), password=password_digest)
+        db_session.add(user)
+    token = login(request, user)
+    return create_response(request, OK, {"token": token})
+
+
+@login_required
+def logout_controller(request):
+    with session_scope() as db_session:
+        user_session = db_session.query(Session).filter_by(token=request.get("token")).first()
+        user_session.closed = datetime.now()
+        return create_response(request, OK, "Session closed")

@@ -1,64 +1,58 @@
 from functools import reduce
 
-from server.utils.server_db import Session
-# from decorators import logged
-from jim.config_jim import MESSAGE, OK, WRONG_REQUEST
-from server.utils.protocol import create_response, create_error_response
+from server.utils.decorators import logged
+from server.utils.server_db import session_scope
+from server.utils.config_jim import OK, WRONG_REQUEST, DATA, MESSAGE
+from server.utils.protocol import create_response
 from .models import Message
 
 
-# @logged
+@logged
 def echo_controller(request):
-    # data = request.get(MESSAGE)
-    data = request[MESSAGE]
-    session = Session()
-    message = Message(data=data)
-    session.add(message)
-    session.commit()
-    session.close()
+    data = request[DATA]
+    with session_scope() as session:
+        message = Message(data=data[MESSAGE])
+        session.add(message)
     return create_response(request, OK, data)
 
 
+@logged
 def delete_message_controller(request):
     # message_id = request.get("message_id")
-    # message_id = request.get(MESSAGE)
-    message_id = request[MESSAGE]
-    session = Session()
-    message = session.query(Message).filter_by(id=message_id).first()
-    session.delete(message)
-    session.commit()
-    session.close()
+    message_id = request[DATA][MESSAGE]
+    with session_scope() as session:
+        message = session.query(Message).filter_by(id=message_id).first()
+        session.delete(message)
     return create_response(request, OK)
 
 
+@logged
 def update_message_controller(request):
     # message_id = request.get("message_id")
     # message_data = request.get("message_data")
 
-    request_list = request[MESSAGE].split()
+    request_list = request[DATA][MESSAGE].split()
     try:
         message_id = request_list[0]
         message_data = " ".join(request_list[1:])
     except IndexError:
         # print("Не задан id или текст сообщения")
-        return create_error_response(WRONG_REQUEST, "Не задан id или текст сообщения")
+        return create_response(request, WRONG_REQUEST, {MESSAGE: "Не задан id или текст сообщения"})
     else:
-        session = Session()
-        message = session.query(Message).filter_by(id=message_id).first()
-        message.data = message_data
-        session.commit()
-        session.close()
+        with session_scope() as session:
+            message = session.query(Message).filter_by(id=message_id).first()
+            message.data = message_data
         return create_response(request, OK)
 
 
-# @logged
+@logged
 def get_messages_controller(request):
-    session = Session()
-    messages = reduce(
-        lambda value, item: value + [
-            {"data": item.data, "created": item.created.timestamp()}
-        ],
-        session.query(Message).all(),
-        []
-    )
-    return create_response(request, OK, messages)
+    with session_scope() as session:
+        messages = reduce(
+            lambda value, item: value + [
+                {MESSAGE: item.data, "created": item.created.timestamp()}
+            ],
+            session.query(Message).all(),
+            []
+        )
+        return create_response(request, OK, {MESSAGE: str(messages)})

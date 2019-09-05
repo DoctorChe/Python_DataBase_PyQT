@@ -1,34 +1,33 @@
-from jim.config_jim import ACTION, WRONG_REQUEST, SERVER_ERROR, NOT_FOUND
-from server.utils.protocol import common_check_message, create_error_response
-from server.utils.resolvers import resolve
+import json
 
-import logging
-# from server.utils import server_log_config
-from server.utils import server_log_config
-from server.utils.decorators import Log
-
-logger = logging.getLogger("server")
-log = Log(logger)
+from utils.config_jim import ACTION, WRONG_REQUEST, SERVER_ERROR, NOT_FOUND, MESSAGE
+from utils.config_server import ENCODING
+from utils.middlewares import compression_middleware, encryption_middleware
+from utils.protocol import common_check_message, create_response
+from utils.resolvers import resolve
+from utils.config_log_server import server_logger
 
 
-# Обработчик сообщений от клиентов, принимает словарь - сообщение от клиента, проверяет корректность, формирует ответ
-def handle_process_client_message(message: dict):
-    logger.debug(f"Разбор сообщения от клиента : {message}")
+@compression_middleware
+@encryption_middleware
+def handle_process_client_message(raw_message):
+    message = json.loads(raw_message.decode(ENCODING))
+    server_logger.debug(f"Разбор сообщения от клиента : {message}")
     if common_check_message(message):
-        action_name = message.get(ACTION)
+        # server_logger.debug(f"Message '{message}' was checked")
+        action_name = message[ACTION]
+        # server_logger.debug(f"action_name = {action_name}")
         controller = resolve(action_name)
         if controller:
             try:
-                logger.debug(f"Controller {action_name} resolved with request: {message}")
+                server_logger.debug(f"Controller {action_name} resolved with request: {message}")
                 response = controller(message)
             except Exception as err:
-                logging.critical(f"Controller {action_name} error: {err}")
-                # response = create_response(message, SERVER_ERROR, "Internal server error")
-                response = create_error_response(SERVER_ERROR, "Internal server error")
+                server_logger.critical(f"Controller {action_name} error: {err}")
+                response = create_response(message, SERVER_ERROR, {MESSAGE: "Internal server error"})
         else:
-            logging.error(f'Controller {action_name} not found')
-            # response = create_response(message, NOT_FOUND, f"Action with name {action_name} not supported")
-            response = create_error_response(NOT_FOUND, f"Action with name {action_name} not supported")
+            server_logger.error(f'Controller {action_name} not found')
+            response = create_response(message, NOT_FOUND, {MESSAGE: f"Action with name {action_name} not supported"})
         # TODO: сделать регистрацию клиентов
         # if (
         #         message[ACTION] == PRESENCE and
@@ -88,7 +87,6 @@ def handle_process_client_message(message: dict):
         #     return
     # Иначе отдаём Bad request
     else:
-        logging.error(f"Запрос некорректен: {message}")
-        # response = create_response(message, WRONG_REQUEST, "Запрос некорректен.")
-        response = create_error_response(WRONG_REQUEST, "Запрос некорректен.")
-    return response
+        server_logger.error(f"Запрос некорректен: {message}")
+        response = create_response(message, WRONG_REQUEST, {MESSAGE: "Запрос некорректен."})
+    return json.dumps(response).encode(ENCODING)

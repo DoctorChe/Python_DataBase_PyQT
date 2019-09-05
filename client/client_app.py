@@ -1,21 +1,15 @@
 import threading
 import time
 
-from client.utils.protocol import create_message
-from jim.config_jim import (ACTION, TIME, TYPE, USER, ACCOUNT_NAME, STATUS, RESPONSE, PRESENCE, RESPONSE_CODES, MESSAGE,
-                            ERROR, ALERT)
-from client.utils.message import send_message, recieve_message
-from client.utils.metaclasses import ClientVerifier
-from client.utils.errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
-from client.utils.descriptors import CheckedHost, ClientName
+from utils.protocol import create_message
+from utils.config_jim import RESPONSE, RESPONSE_CODES, MESSAGE, DATA
+from utils.message import send_message, receive_message
+from utils.metaclasses import ClientVerifier
+from utils.errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
+from utils.descriptors import CheckedHost, ClientName
 
-import logging
-from client.utils import client_log_config
-# from client.utils import client_log_config
-from client.utils.decorators import Log
-
-logger = logging.getLogger("client")
-log = Log(logger)
+from client.utils.config_log_client import client_logger
+from client.utils.decorators import logged
 
 
 # class Client(threading.Thread, metaclass=ClientVerifier):
@@ -43,7 +37,7 @@ class Client(metaclass=ClientVerifier):
         if exc_type:
             if exc_type is not KeyboardInterrupt:
                 message = "Client stopped with error"
-        logging.info(message)
+        client_logger.info(message)
         self.close()
         return True
 
@@ -51,17 +45,12 @@ class Client(metaclass=ClientVerifier):
     def name(self):
         return self._name
 
-    @log
+    @logged
     def connect(self):
         try:
             self._socket.connect(self._host)
         except ConnectionRefusedError:
             # print("Connection refused. Server unavailable.")
-
-            # Заполняем лог
-            # res = "Connection refused. Server unavailable."
-            # logger.error(f"{res} - {self.connect.__name__}")
-
             return False
         return True
 
@@ -71,36 +60,32 @@ class Client(metaclass=ClientVerifier):
     def send(self, request):
         send_message(self._socket, request)
 
-    def recieve(self):
-        return recieve_message(self._socket)
+    def receive(self):
+        return receive_message(self._socket)
 
-    @log
-    def create_presence(self, status=None):
-        """
-        Создание ​​presence-сообщения
-        :param status: статус пользователя
-        :return: словарь сообщения
-        """
+    # @logged
+    # def create_presence(self, status=None):
+    #     """
+    #     Создание ​​presence-сообщения
+    #     :param status: статус пользователя
+    #     :return: словарь сообщения
+    #     """
+    #
+    #     unix_timestamp = time.time()
+    #     presence = {
+    #         ACTION: PRESENCE,
+    #         TIME: unix_timestamp,
+    #         USER: {
+    #             ACCOUNT_NAME: self.name,
+    #         }
+    #     }
+    #     # if status:
+    #     #     presence[TYPE] = "status"
+    #     #     presence[USER][STATUS] = status
+    #
+    #     return presence
 
-        unix_timestamp = time.time()
-        presence = {
-            ACTION: PRESENCE,
-            TIME: unix_timestamp,
-            USER: {
-                ACCOUNT_NAME: self.name,
-            }
-        }
-        if status:
-            presence[TYPE] = "status"
-            presence[USER][STATUS] = status
-
-        # Заполняем лог
-        # res = f"- {presence}"
-        # logger.info(f"{res} - {self.create_presence.__name__}")
-
-        return presence
-
-    @log
+    @logged
     def translate_message(self, response):
         """
         Разбор сообщения
@@ -122,10 +107,6 @@ class Client(metaclass=ClientVerifier):
         if code not in RESPONSE_CODES:
             raise ResponseCodeError(code)  # ошибка неверный код ответа
 
-        # Заполняем лог
-        res = f"args: ({response},)- {response}"
-        logger.info(f"{res} - {self.translate_message.__name__}")
-
         return response
 
     def read_messages(self):
@@ -133,15 +114,13 @@ class Client(metaclass=ClientVerifier):
         Клиент читает входящие сообщения в бесконечном цикле
         """
         while True:
-            message = self.recieve()  # получаем ответ от сервера
-            if RESPONSE in message:
-                if ERROR in message:
-                    print(f"Ошибка {message[RESPONSE]} - {message[ERROR]}")
-                if ALERT in message:
-                    print(message[ALERT])
-            # elif MESSAGE in message:
-            if MESSAGE in message:
-                print(message[MESSAGE])  # там должно быть сообщение
+            message = self.receive()  # получаем ответ от сервера
+            client_logger.info(f"Принято сообщение: {message}")
+            if RESPONSE in message and DATA in message:
+                if message[RESPONSE] in range(400, 600) and MESSAGE in message[DATA]:
+                    print(f"Ошибка {message[RESPONSE]} - {message[DATA][MESSAGE]}")
+                elif message[RESPONSE] in range(100, 400) and MESSAGE in message[DATA]:
+                    print(message[DATA][MESSAGE])  # там должно быть сообщение
 
     def write_messages(self):
         """Клиент пишет сообщение в бесконечном цикле"""

@@ -1,5 +1,7 @@
 from functools import wraps
 
+from client.utils.config_log_client import client_logger
+
 
 class Log:
     """
@@ -43,7 +45,10 @@ class Log:
             # Формируем сообщение в лог
             message = Log._create_message(result, *args, **kwargs)
             # Пишем сообщение в лог
-            self.logger.info(f"{message} - {decorated.__name__} - {decorated.__module__}")
+            self.logger.debug(f"{message} - {decorated.__name__} - {decorated.__module__}")
             return result
 
         return decorated
+
+
+logged = Log(client_logger)

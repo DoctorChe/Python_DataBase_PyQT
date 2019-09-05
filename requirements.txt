@@ -2,3 +2,4 @@ chardet
 tabulate
 jupyter
 sqlalchemy
+pycryptodome

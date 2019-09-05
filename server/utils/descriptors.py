@@ -1,13 +1,7 @@
 import ipaddress
 import socket
 
-import logging
-from server.utils import server_log_config
-# from server.utils import server_log_config
-from server.utils.decorators import Log
-
-logger = logging.getLogger("server")
-log = Log(logger)
+from server.utils.config_log_server import server_logger
 
 
 class CheckedHost:
@@ -18,7 +12,7 @@ class CheckedHost:
 
         # Проверяем адрес
         if not check_ip(hostname_to_ip(ip)):
-            logger.critical(
+            server_logger.critical(
                 f"Попытка запуска клиента с неподходящим ip-адресом: {ip}. Клиент завершается.")
             raise ValueError(
                 f"Попытка запуска клиента с неподходящим ip-адресом: {ip}. Клиент завершается.")
@@ -26,11 +20,11 @@ class CheckedHost:
         # Проверяем порт
         if not isinstance(port, int):
             # Заполняем лог
-            res = f"Попытка запуска клиента с портом не являющимся целым числом: {port}."
-            logger.error(f"{res} - {port}")
-            raise TypeError(f"Попытка запуска клиента с портом не являющимся целым числом: {port}.")
+            res = f"Попытка запуска клиента с портом не являющимся целым числом: {port}. Клиент завершается."
+            server_logger.error(f"{res} - {port}")
+            raise TypeError(f"Попытка запуска клиента с портом не являющимся целым числом: {port}. Клиент завершается.")
         if not 1023 < port < 65536:
-            logger.critical(
+            server_logger.critical(
                 f"Попытка запуска клиента с неподходящим номером порта: {port}. "
                 f"Допустимы адреса с 1024 до 65535. Клиент завершается.")
             raise ValueError(

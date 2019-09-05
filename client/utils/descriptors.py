@@ -1,14 +1,8 @@
 import ipaddress
 import socket
-from client.utils.errors import UsernameToLongError
+from utils.errors import UsernameToLongError
 
-import logging
-from client.utils import client_log_config
-# from server.utils import server_log_config
-from client.utils.decorators import Log
-
-logger = logging.getLogger("client")
-log = Log(logger)
+from client.utils.config_log_client import client_logger
 
 
 class ClientName:
@@ -23,12 +17,12 @@ class ClientName:
         if not isinstance(value, str):
             # Заполняем лог
             res = "Попытка запуска клиента с именем не являющимся строкой."
-            logger.error(f"{res} - {value}")
+            client_logger.error(f"{res} - {value}")
             raise TypeError
         if len(value) > 25:
             # Заполняем лог
             res = "Попытка запуска клиента со слишком длинным именем."
-            logger.error(f"{res} - {value} - {len(value)} символов")
+            client_logger.error(f"{res} - {value} - {len(value)} символов")
             raise UsernameToLongError(value)
         instance.__dict__[self.name] = value
 
@@ -46,7 +40,7 @@ class CheckedHost:
 
         # Проверяем адрес
         if not check_ip(hostname_to_ip(ip)):
-            logger.critical(
+            client_logger.critical(
                 f"Попытка запуска клиента с неподходящим ip-адресом: {ip}. Клиент завершается.")
             raise ValueError(
                 f"Попытка запуска клиента с неподходящим ip-адресом: {ip}. Клиент завершается.")
@@ -55,10 +49,10 @@ class CheckedHost:
         if not isinstance(port, int):
             # Заполняем лог
             res = f"Попытка запуска клиента с портом не являющимся целым числом: {port}."
-            logger.error(f"{res} - {port}")
+            client_logger.error(f"{res} - {port}")
             raise TypeError(f"Попытка запуска клиента с портом не являющимся целым числом: {port}.")
         if not 1023 < port < 65536:
-            logger.critical(
+            client_logger.critical(
                 f"Попытка запуска клиента с неподходящим номером порта: {port}. "
                 f"Допустимы адреса с 1024 до 65535. Клиент завершается.")
             raise ValueError(
