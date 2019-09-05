@@ -1,5 +1,4 @@
 import threading
-import time
 
 from utils.protocol import create_message
 from utils.config_jim import RESPONSE, RESPONSE_CODES, MESSAGE, DATA

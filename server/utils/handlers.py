@@ -14,9 +14,9 @@ def handle_process_client_message(raw_message):
     message = json.loads(raw_message.decode(ENCODING))
     server_logger.debug(f"Разбор сообщения от клиента : {message}")
     if common_check_message(message):
-        # server_logger.debug(f"Message '{message}' was checked")
+        server_logger.debug(f"Message '{message}' was checked")
         action_name = message[ACTION]
-        # server_logger.debug(f"action_name = {action_name}")
+        server_logger.debug(f"action_name = {action_name}")
         controller = resolve(action_name)
         if controller:
             try:
@@ -26,7 +26,7 @@ def handle_process_client_message(raw_message):
                 server_logger.critical(f"Controller {action_name} error: {err}")
                 response = create_response(message, SERVER_ERROR, {MESSAGE: "Internal server error"})
         else:
-            server_logger.error(f'Controller {action_name} not found')
+            server_logger.error(f"Controller {action_name} not found")
             response = create_response(message, NOT_FOUND, {MESSAGE: f"Action with name {action_name} not supported"})
         # TODO: сделать регистрацию клиентов
         # if (

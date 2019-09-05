@@ -11,8 +11,8 @@ def login_required(func):
         if TOKEN not in request:
             return create_response(request, FORBIDDEN, {MESSAGE: "Access denied"})
 
-        with session_scope() as db_session:
-            user_session = db_session.query(Session).filter_by(token=request[TOKEN]).first()
+        with session_scope() as session:
+            user_session = session.query(Session).filter_by(token=request[TOKEN]).first()
             if not user_session or user_session.closed:
                 return create_response(request, FORBIDDEN, {MESSAGE: "Access denied"})
 

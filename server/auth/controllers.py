@@ -1,7 +1,10 @@
 import hmac
 from datetime import datetime
 
-from server.utils.config_jim import OK, DATA, MESSAGE, WRONG_REQUEST, TIME, PASSWORD, LOGIN
+from auth.decorators import login_required
+from auth.settings import SECRET_KEY
+from auth.utils import authenticate, login
+from server.utils.config_jim import OK, DATA, MESSAGE, WRONG_REQUEST, TIME, PASSWORD, LOGIN, TOKEN
 from server.auth.models import User, Session
 from server.utils.decorators import logged
 from server.utils.protocol import create_response
@@ -53,7 +56,7 @@ def login_controller(request):
 
     if user:
         token = login(request, user)
-        return create_response(request, OK, {'token': token})
+        return create_response(request, OK, {TOKEN: token})
 
     return create_response(request, WRONG_REQUEST, "Enter correct login or password")
 
