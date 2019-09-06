@@ -8,8 +8,8 @@ from utils.resolvers import resolve
 from utils.config_log_server import server_logger
 
 
-@compression_middleware
-@encryption_middleware
+# @compression_middleware
+# @encryption_middleware
 def handle_process_client_message(raw_message):
     message = json.loads(raw_message.decode(ENCODING))
     server_logger.debug(f"Разбор сообщения от клиента : {message}")

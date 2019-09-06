@@ -16,5 +16,5 @@ class Message(Base):
     user = relationship("User", back_populates="messages")
 
     @property
-    def is_anonimous(self):
+    def is_anonymous(self):
         return self.user is None

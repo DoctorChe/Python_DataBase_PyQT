@@ -32,6 +32,7 @@ def user_login_controller(request):
     return response
 
 
+# @logged
 def login_controller(request):
     errors = {}
     is_valid = True
@@ -61,34 +62,37 @@ def login_controller(request):
     return create_response(request, WRONG_REQUEST, "Enter correct login or password")
 
 
+# @logged
 def registration_controller(request):
+    print("registration_controller started")
     errors = {}
     is_valid = True
     data = request[DATA]
 
-    if "password" not in data:
-        errors.update({"password": "Attribute is required"})
+    if PASSWORD not in data:
+        errors.update({PASSWORD: "Attribute is required"})
         is_valid = False
-    if "login" not in data:
-        errors.update({"login": "Attribute is required"})
+    if LOGIN not in data:
+        errors.update({LOGIN: "Attribute is required"})
         is_valid = False
 
     if not is_valid:
-        return create_response(request, WRONG_REQUEST, {"errors": errors})
+        # return create_response(request, WRONG_REQUEST, {"errors": errors})
+        return create_response(request, WRONG_REQUEST, {MESSAGE: errors})
 
-    hmac_obj = hmac.new(SECRET_KEY.encode(), data.get("password").encode())
+    hmac_obj = hmac.new(SECRET_KEY.encode(), data.get(PASSWORD).encode())
     password_digest = hmac_obj.hexdigest()
 
     with session_scope() as db_session:
-        user = User(name=data.get("login"), password=password_digest)
+        user = User(name=data.get(LOGIN), password=password_digest)
         db_session.add(user)
     token = login(request, user)
-    return create_response(request, OK, {"token": token})
+    return create_response(request, OK, {TOKEN: token})
 
 
 @login_required
 def logout_controller(request):
     with session_scope() as db_session:
-        user_session = db_session.query(Session).filter_by(token=request.get("token")).first()
+        user_session = db_session.query(Session).filter_by(token=request.get(TOKEN)).first()
         user_session.closed = datetime.now()
         return create_response(request, OK, "Session closed")

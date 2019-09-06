@@ -1,5 +1,6 @@
 import json
 import zlib
+from functools import wraps
 
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
@@ -10,7 +11,80 @@ from utils.util import get_chunk
 from client.utils.decorators import logged
 
 
+def to_json_middleware(func):
+    @wraps(func)
+    def wrapper(sock, request, *args, **kwargs):
+        encoded_message = json.dumps(request).encode(ENCODING)
+        res = func(sock, encoded_message, *args, **kwargs)
+        return res
+    return wrapper
+
+
+def from_json_middleware(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        b_request = func(*args, **kwargs)
+        request = json.loads(b_request.decode(ENCODING))
+        return request
+    return wrapper
+
+
+def encrypt_middleware(func):
+    @wraps(func)
+    def wrapper(sock, encoded_message, *args, **kwargs):
+        key = get_random_bytes(16)
+        cipher = AES.new(key, AES.MODE_EAX)
+        encrypted_message, tag = cipher.encrypt_and_digest(encoded_message)
+
+        encrypted_string = b"%(nonce)s%(key)s%(tag)s%(data)s" % {
+            b"nonce": cipher.nonce,
+            b"key": key,
+            b"tag": tag,
+            b"data": encrypted_message
+        }
+        res = func(sock, encrypted_string, *args, **kwargs)
+        return res
+    return wrapper
+
+
+def decrypt_middleware(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        encrypted_string = func(*args, **kwargs)
+
+        nonce, encrypted_message = get_chunk(encrypted_string, 16)
+        key, encrypted_message = get_chunk(encrypted_string, 16)
+        tag, encrypted_message = get_chunk(encrypted_string, 16)
+
+        cipher = AES.new(key, AES.MODE_EAX, nonce)
+
+        decrypted_message = cipher.decrypt_and_verify(encrypted_message, tag)
+        return decrypted_message
+    return wrapper
+
+
+def compress_middleware(func):
+    @wraps(func)
+    def wrapper(sock, b_request, *args, **kwargs):
+        compressed_b_request = zlib.compress(b_request)
+        res = func(sock, compressed_b_request, *args, **kwargs)
+        return res
+    return wrapper
+
+
+def decompress_middleware(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        compressed_b_request = func(*args, **kwargs)
+        b_request = zlib.compress(compressed_b_request)
+        return b_request
+    return wrapper
+
+
 @logged
+# @compress_middleware
+# @encrypt_middleware
+@to_json_middleware
 def send_message(socket, msg: dict):
     """
     Отправка сообщения

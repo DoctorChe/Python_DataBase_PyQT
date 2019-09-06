@@ -1,8 +1,11 @@
+import json
 import threading
 
+from utils.config_client import MSG_SIZE
 from utils.protocol import create_message
 from utils.config_jim import RESPONSE, RESPONSE_CODES, MESSAGE, DATA
-from utils.message import send_message, receive_message
+from utils.message import send_message, receive_message, compress_middleware, encrypt_middleware, to_json_middleware, \
+    from_json_middleware, decrypt_middleware, decompress_middleware
 from utils.metaclasses import ClientVerifier
 from utils.errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
 from utils.descriptors import CheckedHost, ClientName
@@ -56,11 +59,21 @@ class Client(metaclass=ClientVerifier):
     def close(self):
         self._socket.close()
 
+    @logged
+    # @compress_middleware
+    # @encrypt_middleware
+    @to_json_middleware
     def send(self, request):
-        send_message(self._socket, request)
+        # send_message(self._socket, request)
+        self._socket.send(request)
 
+    @logged
+    @from_json_middleware
+    # @decrypt_middleware
+    # @decompress_middleware
     def receive(self):
-        return receive_message(self._socket)
+        # return receive_message(self._socket)
+        return self._socket.recv(MSG_SIZE)
 
     # @logged
     # def create_presence(self, status=None):
@@ -124,15 +137,22 @@ class Client(metaclass=ClientVerifier):
     def write_messages(self):
         """Клиент пишет сообщение в бесконечном цикле"""
         while True:
-            message_str = input(">>> ")
+            # message_str = input(">>> ")
+            #
+            # message_list = message_str.split()
+            # action = message_list[0]
+            # if len(message_list) > 1:
+            #     text = " ".join(message_list[1:])
+            # else:
+            #     text = ""
+            # text = json.loads(text)
 
-            message_list = message_str.split()
-            action = message_list[0]
-            if len(message_list) > 1:
-                text = " ".join(message_list[1:])
-            else:
-                text = ""
-            message = create_message(action, text)
+            action = input('Enter action: ')
+            data = json.loads(input('Enter data: '))
+            test = {'login': 'Duncan', 'password': 'pass'}
+            print(data)
+
+            message = create_message(action, data)
             self.send(message)
 
             # elif message_str == "help":

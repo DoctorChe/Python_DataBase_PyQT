@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
-from server.utils.server_db import Base
+from utils.server_db import Base
 
 
 class User(Base):
@@ -12,9 +12,9 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
-    messages = relationship("Message", back_populates="user")
-    contacts = relationship("Contact", back_populates="user")
     sessions = relationship("Session", back_populates="user")
+    # messages = relationship("Message", back_populates="user")
+    # contacts = relationship("Contact", back_populates="user")
 
 
 class Session(Base):
