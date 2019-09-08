@@ -2,10 +2,10 @@ from socket import socket, AF_INET, SOCK_STREAM
 
 from client.client_app import Client
 from utils.parser import create_parser
-from utils.protocol import create_message
-from utils.config_jim import PRESENCE, RESPONSE, OK, GET_CONTACTS, ACCEPTED, MESSAGE, DATA
+# from utils.protocol import create_message
+# from utils.config_jim import PRESENCE, RESPONSE, OK, GET_CONTACTS, ACCEPTED, MESSAGE, DATA
 
-from client.utils.config_log_client import client_logger
+# from client.utils.config_log_client import client_logger
 
 parser = create_parser()
 

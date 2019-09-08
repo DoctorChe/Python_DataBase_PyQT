@@ -14,8 +14,10 @@ from client.utils.decorators import logged
 def to_json_middleware(func):
     @wraps(func)
     def wrapper(sock, request, *args, **kwargs):
-        encoded_message = json.dumps(request).encode(ENCODING)
-        res = func(sock, encoded_message, *args, **kwargs)
+        print(f"request = {request}")
+        js_request = json.dumps(request)
+        print(f"js_request = {js_request}")
+        res = func(sock, js_request, *args, **kwargs)
         return res
     return wrapper
 
@@ -23,8 +25,10 @@ def to_json_middleware(func):
 def from_json_middleware(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        b_request = func(*args, **kwargs)
-        request = json.loads(b_request.decode(ENCODING))
+        js_request = func(*args, **kwargs)
+        print(f"js_request = {js_request}")
+        request = json.loads(js_request)
+        print(f"request = {request}")
         return request
     return wrapper
 

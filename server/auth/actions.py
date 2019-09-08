@@ -2,8 +2,8 @@ from server.utils.config_jim import ACTION, PRESENCE, ACT_LOGIN, ACT_LOGOUT, ACT
 from .controllers import (
     user_login_controller,
     login_controller,
+    registration_controller,
     logout_controller,
-    registration_controller
 )
 
 action_names = [
