@@ -1,4 +1,4 @@
-from server.utils.config_jim import ACTION, PRESENCE, ACT_LOGIN, ACT_LOGOUT, ACT_REGISTRATION
+from utils.config_jim import ACTION, PRESENCE, ACT_LOGIN, ACT_LOGOUT, ACT_REGISTRATION
 from .controllers import (
     user_login_controller,
     login_controller,

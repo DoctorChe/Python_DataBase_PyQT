@@ -4,11 +4,11 @@ from datetime import datetime
 from auth.decorators import login_required
 from auth.settings import SECRET_KEY
 from auth.utils import authenticate, login
-from server.utils.config_jim import OK, DATA, MESSAGE, WRONG_REQUEST, TIME, PASSWORD, LOGIN, TOKEN
-from server.auth.models import User, Session
-from server.utils.decorators import logged
-from server.utils.protocol import create_response
-from server.utils.server_db import session_scope
+from utils.config_jim import OK, DATA, MESSAGE, WRONG_REQUEST, TIME, PASSWORD, LOGIN, TOKEN
+from auth.models import User, Session
+from utils.decorators import logged
+from utils.protocol import create_response
+from utils.server_db import session_scope
 
 
 @logged
@@ -64,10 +64,9 @@ def login_controller(request):
 
 # @logged
 def registration_controller(request):
-    print("registration_controller started")
     errors = {}
     is_valid = True
-    data = request[DATA]
+    data = request.get(DATA)
 
     if PASSWORD not in data:
         errors.update({PASSWORD: "Attribute is required"})
@@ -79,10 +78,8 @@ def registration_controller(request):
     if not is_valid:
         # return create_response(request, WRONG_REQUEST, {"errors": errors})
         return create_response(request, WRONG_REQUEST, {MESSAGE: errors})
-
     hmac_obj = hmac.new(SECRET_KEY.encode(), data.get(PASSWORD).encode())
     password_digest = hmac_obj.hexdigest()
-
     with session_scope() as db_session:
         user = User(name=data.get(LOGIN), password=password_digest)
         db_session.add(user)

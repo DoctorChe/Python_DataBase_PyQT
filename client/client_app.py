@@ -1,18 +1,11 @@
-import hashlib
 import json
 import threading
-import zlib
-from datetime import datetime
 
-from Crypto.Cipher import AES
-from Crypto.Random import get_random_bytes
-
-from utils.config_client import MSG_SIZE, ENCODING
-# from utils.protocol import create_message
-from utils.protocol import make_request
+from utils.config_client import MSG_SIZE
+from utils.protocol import create_message
 from utils.config_jim import RESPONSE, RESPONSE_CODES, MESSAGE, DATA
-from utils.message import send_message, receive_message, compress_middleware, encrypt_middleware, to_json_middleware, \
-    from_json_middleware, decrypt_middleware, decompress_middleware
+from utils.message import compress_middleware, encrypt_middleware, to_json_middleware, from_json_middleware, \
+    decrypt_middleware, decompress_middleware
 from utils.metaclasses import ClientVerifier
 from utils.errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
 from utils.descriptors import CheckedHost, ClientName
@@ -22,11 +15,7 @@ from client.utils.decorators import logged
 
 
 # class Client(threading.Thread, metaclass=ClientVerifier):
-from utils.util import get_chunk
-
-
 class Client(metaclass=ClientVerifier):
-
     _name = ClientName()
     _host = CheckedHost()
 
@@ -69,21 +58,17 @@ class Client(metaclass=ClientVerifier):
     def close(self):
         self._socket.close()
 
-    @logged
-    # @compress_middleware
-    # @encrypt_middleware
     @to_json_middleware
+    @encrypt_middleware
+    @compress_middleware
     def send(self, request):
-        # send_message(self._socket, request)
-        self._socket.send(request.encode(ENCODING))
+        self._socket.send(request)
 
-    @logged
     @from_json_middleware
-    # @decrypt_middleware
-    # @decompress_middleware
+    @decrypt_middleware
+    @decompress_middleware
     def receive(self):
-        # return receive_message(self._socket)
-        return self._socket.recv(MSG_SIZE).decode(ENCODING)
+        return self._socket.recv(MSG_SIZE)
 
     # @logged
     # def create_presence(self, status=None):
@@ -135,76 +120,27 @@ class Client(metaclass=ClientVerifier):
         """
         Клиент читает входящие сообщения в бесконечном цикле
         """
-        # while True:
-
-        # message = self.receive()  # получаем ответ от сервера
-        # client_logger.info(f"Принято сообщение: {message}")
-        # if RESPONSE in message and DATA in message:
-        #     if message[RESPONSE] in range(400, 600) and MESSAGE in message[DATA]:
-        #         print(f"Ошибка {message[RESPONSE]} - {message[DATA][MESSAGE]}")
-        #     elif message[RESPONSE] in range(100, 400) and MESSAGE in message[DATA]:
-        #         print(message[DATA][MESSAGE])  # там должно быть сообщение
-
-        comporessed_response = self._socket.recv(MSG_SIZE)
-        encrypted_response = zlib.decompress(comporessed_response)
-
-        nonce, encrypted_response = get_chunk(encrypted_response, 16)
-        key, encrypted_response = get_chunk(encrypted_response, 16)
-        tag, encrypted_response = get_chunk(encrypted_response, 16)
-
-        cipher = AES.new(key, AES.MODE_EAX, nonce)
-
-        raw_responce = cipher.decrypt_and_verify(encrypted_response, tag)
-        client_logger.info(raw_responce.decode())
+        message = self.receive()  # получаем ответ от сервера
+        client_logger.info(f"Принято сообщение: {message}")
+        if RESPONSE in message and DATA in message:
+            if message[RESPONSE] in range(400, 600) and MESSAGE in message[DATA]:
+                print(f"Ошибка {message[RESPONSE]} - {message[DATA][MESSAGE]}")
+            elif message[RESPONSE] in range(100, 400) and MESSAGE in message[DATA]:
+                print(message[DATA][MESSAGE])  # там должно быть сообщение
 
     def write_messages(self):
         """Клиент пишет сообщение в бесконечном цикле"""
-        # # while True:
-        #
-        # # message_str = input(">>> ")
-        # #
-        # # message_list = message_str.split()
-        # # action = message_list[0]
-        # # if len(message_list) > 1:
-        # #     text = " ".join(message_list[1:])
-        # # else:
-        # #     text = ""
-        # # text = json.loads(text)
-        #
-        # action = input("Enter action: ")
-        # data = json.loads(input("Enter data: "))
-        #
-        # # action = "registration"
-        # # # print(f"action = {action}")
-        # # data = '{"login": "Duncan", "password": "pass"}'
-        # # data = json.loads(data)
-        # # # print(f"data = {data}")
-        #
-        # message = create_message(action, data)
-        # print(f"created_message = {message}")
-        # self.send(message)
+        action = input("Enter action: ")
+        dict_data = json.loads(input("Enter data: "))
 
-        key = get_random_bytes(16)
-        cipher = AES.new(key, AES.MODE_EAX)
+        # json_string = "{" + f'"{MESSAGE}": "{data}"' + "}"
+        # {"text": "test"}
 
-        hash_obj = hashlib.sha256()
-        hash_obj.update(
-            str(datetime.now().timestamp()).encode()
-        )
+        # registration
+        # {"login": "Duncan", "password": "pass"}
 
-        action = input('Enter action: ')
-        data = json.loads(input('Enter data: '))
-
-        request = make_request(action, data, hash_obj.hexdigest())
-        bytes_request = json.dumps(request).encode()
-        encrypted_request, tag = cipher.encrypt_and_digest(bytes_request)
-
-        bytes_request = zlib.compress(
-            b'%(nonce)s%(key)s%(tag)s%(data)s' % {
-                b'nonce': cipher.nonce, b'key': key, b'tag': tag, b'data': encrypted_request
-            }
-        )
-        self._socket.send(bytes_request)
+        message = create_message(action, dict_data)
+        self.send(message)
 
         # elif message_str == "help":
         #     print("message <получатель> <текст> - отправить сообщение")

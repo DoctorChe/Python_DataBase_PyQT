@@ -13,8 +13,8 @@ class User(Base):
     name = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
     sessions = relationship("Session", back_populates="user")
-    # messages = relationship("Message", back_populates="user")
-    # contacts = relationship("Contact", back_populates="user")
+    messages = relationship("Message", back_populates="user")
+    contacts = relationship("Contact", back_populates="user")
 
 
 class Session(Base):
