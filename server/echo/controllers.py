@@ -1,3 +1,4 @@
+from datetime import datetime
 from functools import reduce
 
 from utils.decorators import logged
@@ -11,7 +12,8 @@ from .models import Message
 def echo_controller(request):
     data = request[DATA]
     with session_scope() as session:
-        message = Message(data=data[MESSAGE])
+        # message = Message(data=data[MESSAGE])
+        message = Message(data=data[MESSAGE], created=datetime.now())
         session.add(message)
     return create_response(request, OK, data)
 
