@@ -70,6 +70,12 @@ class Server(metaclass=ServerVerifier):
 
     # def write(self, send_data_lst, message):
     def write(self, sock, message):
+        """
+        Метод отправки сообщений
+        :param sock: сокет
+        :param message: словарь сообщения
+        :return: None
+        """
         try:
             # self.process_message(message, send_data_lst)
             # TODO: сделать проверку: зарегистрирован ли клиент на сервере
