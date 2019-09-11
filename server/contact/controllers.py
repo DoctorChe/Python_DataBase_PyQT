@@ -1,9 +1,9 @@
-from server.utils.config_jim import MESSAGE, OK, CONFLICT, ACCEPTED, DATA
-from server.auth.models import User
-from server.contact.models import Contact
-from server.utils.decorators import logged
-from server.utils.protocol import create_response
-from server.utils.server_db import session_scope
+from utils.config_jim import MESSAGE, OK, CONFLICT, ACCEPTED, DATA
+from auth.models import User
+from contact.models import Contact
+from utils.decorators import logged
+from utils.protocol import create_response
+from utils.server_db import session_scope
 
 
 @logged

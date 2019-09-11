@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
-from server.utils.server_db import Base
+from utils.server_db import Base
 
 
 class Contact(Base):

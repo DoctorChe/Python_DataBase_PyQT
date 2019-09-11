@@ -1,9 +1,10 @@
+from datetime import datetime
 from functools import reduce
 
-from server.utils.decorators import logged
-from server.utils.server_db import session_scope
-from server.utils.config_jim import OK, WRONG_REQUEST, DATA, MESSAGE
-from server.utils.protocol import create_response
+from utils.decorators import logged
+from utils.server_db import session_scope
+from utils.config_jim import OK, WRONG_REQUEST, DATA, MESSAGE
+from utils.protocol import create_response
 from .models import Message
 
 
@@ -11,7 +12,8 @@ from .models import Message
 def echo_controller(request):
     data = request[DATA]
     with session_scope() as session:
-        message = Message(data=data[MESSAGE])
+        # message = Message(data=data[MESSAGE])
+        message = Message(data=data[MESSAGE], created=datetime.now())
         session.add(message)
     return create_response(request, OK, data)
 

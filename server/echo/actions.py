@@ -1,4 +1,4 @@
-from server.utils.config_jim import ACTION, ECHO, ACT_GET_ALL_MESSAGES, ACT_UPDATE_MESSAGE, ACT_DELETE_MESSAGE
+from utils.config_jim import ACTION, ECHO, ACT_GET_ALL_MESSAGES, ACT_UPDATE_MESSAGE, ACT_DELETE_MESSAGE
 from .controllers import (
     echo_controller,
     get_messages_controller,

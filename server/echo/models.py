@@ -1,8 +1,9 @@
 from datetime import datetime
+
 from sqlalchemy import Column, Integer, DateTime, String, ForeignKey
 from sqlalchemy.orm import relationship
 
-from server.utils.server_db import Base
+from utils.server_db import Base
 
 
 class Message(Base):
@@ -15,5 +16,5 @@ class Message(Base):
     user = relationship("User", back_populates="messages")
 
     @property
-    def is_anonimous(self):
+    def is_anonymous(self):
         return self.user is None

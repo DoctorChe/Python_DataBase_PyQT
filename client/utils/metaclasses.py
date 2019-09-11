@@ -24,8 +24,9 @@ class ClientVerifier(type):
             if command in methods:
                 raise TypeError(f"В классе обнаружено использование запрещённого метода {command}.")
         # Вызов receive_message или send_message из common_utils считаем корректным использованием сокетов
-        if "receive_message" in methods and "send_message" in methods:
-            pass
-        else:
-            raise TypeError("Отсутствуют вызовы функций, работающих с сокетами.")
+        # if "receive_message" in methods and "send_message" in methods:
+        # if "receive" in methods and "send" in methods:
+        #     pass
+        # else:
+        #     raise TypeError("Отсутствуют вызовы функций, работающих с сокетами.")
         super().__init__(clsname, bases, clsdict)
