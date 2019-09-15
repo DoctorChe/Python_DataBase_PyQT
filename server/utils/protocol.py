@@ -1,3 +1,7 @@
+"""
+Модуль, содержищий протокол передачи сообщений
+"""
+
 from utils.config_jim import RESPONSE_CODES, RESPONSE, ACTION, TIME, DATA
 from utils.config_log_server import server_logger
 from utils.decorators import logged
@@ -37,6 +41,13 @@ def common_check_message(msg: dict) -> bool:
 
 @logged
 def create_response(request: dict, response_code: int, data=None) -> dict:
+    """
+    Создать сообщение
+    :param request: Словарь запроса
+    :param response_code: Код ответа
+    :param data: Словарь с дополнительными данными в ответе (например описание ошибки)
+    :return: Словарь ответа
+    """
     if response_code in RESPONSE_CODES:
         return {
             ACTION: request[ACTION],

@@ -1,6 +1,11 @@
+"""
+Модуль, содержащий декораторы.
+"""
+
 from functools import wraps
 
-from server.utils.config_log_server import server_logger
+# from server.utils.config_log_server import server_logger
+from .config_log_server import server_logger
 
 
 class Log:
@@ -19,7 +24,7 @@ class Log:
         :param result: результат работы функции
         :param args: любые параметры по порядку
         :param kwargs: любые именованные параметры
-        :return:
+        :return: сообщение для записи в лог
         """
         message = ""
         if args:
