@@ -14,8 +14,8 @@ LOG_FOLDER_PATH = os.path.join(
 #     # directory already exists
 #     pass
 
-with suppress(FileExistsError):
-    os.makedirs(LOG_FOLDER_PATH)  # пытаемся создать папку для логов
+# with suppress(FileExistsError):
+#     os.makedirs(LOG_FOLDER_PATH)  # пытаемся создать папку для логов
 
 # Путь до серверного лога
 SERVER_LOG_FILE_PATH = os.path.join(LOG_FOLDER_PATH, "server.log")
