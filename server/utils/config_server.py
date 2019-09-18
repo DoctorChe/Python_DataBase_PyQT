@@ -20,5 +20,5 @@ VERSION = "0.8"
 INSTALLED_MODULES = (
     "echo",
     "auth",
-    "contact",
+    # "contact",
 )

@@ -4,11 +4,11 @@ from typing import Tuple
 from socket import socket, AF_INET, SOCK_STREAM
 
 # from utils.config_jim import TO
-from utils.config_server import WORKERS, MSG_SIZE
-from utils.metaclasses import ServerVerifier
-from utils.descriptors import CheckedHost
+from server.utils.config_server import WORKERS, MSG_SIZE
+from server.utils.metaclasses import ServerVerifier
+from server.utils.descriptors import CheckedHost
 
-from utils.config_log_server import server_logger
+from server.utils.config_log_server import server_logger
 
 
 # class Server(threading.Thread, metaclass=ServerVerifier):

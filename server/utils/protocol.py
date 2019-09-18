@@ -2,9 +2,9 @@
 Модуль, содержищий протокол передачи сообщений
 """
 
-from utils.config_jim import RESPONSE_CODES, RESPONSE, ACTION, TIME, DATA
-from utils.config_log_server import server_logger
-from utils.decorators import logged
+from .config_jim import RESPONSE_CODES, RESPONSE, ACTION, TIME, DATA
+from .config_log_server import server_logger
+from .decorators import logged
 
 
 def common_check_message(msg: dict) -> bool:

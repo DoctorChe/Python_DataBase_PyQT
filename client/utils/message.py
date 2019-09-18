@@ -5,8 +5,8 @@ from functools import wraps
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 
-from utils.config_client import ENCODING
-from utils.util import get_chunk
+from .config_client import ENCODING
+from .util import get_chunk
 
 
 def to_json_middleware(func):

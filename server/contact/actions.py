@@ -1,4 +1,4 @@
-from utils.config_jim import ACTION, GET_CONTACT, GET_CONTACTS, ADD_CONTACT, DEL_CONTACT, UPDATE_CONTACT
+from server.utils.config_jim import ACTION, GET_CONTACT, GET_CONTACTS, ADD_CONTACT, DEL_CONTACT, UPDATE_CONTACT
 from .controllers import (
     get_contact_controller,
     get_contacts_controller,

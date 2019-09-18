@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
-from utils.server_db import Base
+from server.utils.server_db import Base
 
 
 class Contact(Base):
@@ -10,4 +10,4 @@ class Contact(Base):
     name = Column(String)
     info = Column(String)
     user_id = Column(Integer, ForeignKey("users.id"))
-    user = relationship("User", back_populates="contacts")
+    # user = relationship("User", back_populates="contacts")

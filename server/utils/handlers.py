@@ -1,11 +1,11 @@
 import json
 
-from utils.config_jim import ACTION, WRONG_REQUEST, SERVER_ERROR, NOT_FOUND, MESSAGE
-from utils.config_server import ENCODING
-from utils.middlewares import compression_middleware, encryption_middleware
-from utils.protocol import common_check_message, create_response
-from utils.resolvers import resolve
-from utils.config_log_server import server_logger
+from .config_jim import ACTION, WRONG_REQUEST, SERVER_ERROR, NOT_FOUND, MESSAGE
+from .config_server import ENCODING
+from .middlewares import compression_middleware, encryption_middleware
+from .protocol import common_check_message, create_response
+from .resolvers import resolve
+from .config_log_server import server_logger
 
 
 @compression_middleware
@@ -28,26 +28,6 @@ def handle_process_client_message(raw_message):
         else:
             server_logger.error(f"Controller {action_name} not found")
             response = create_response(message, NOT_FOUND, {MESSAGE: f"Action with name {action_name} not supported"})
-        # TODO: сделать регистрацию клиентов
-        # if (
-        #         message[ACTION] == PRESENCE and
-        #         USER in message
-        # ):
-        # Если такой пользователь ещё не зарегистрирован, регистрируем,
-        # иначе отправляем ответ и завершаем соединение.
-        # if message[USER][ACCOUNT_NAME] not in self.names.keys():
-        #     self.names[message[USER][ACCOUNT_NAME]] = client
-        #     client_ip, client_port = client.getpeername()
-        #     self.database.user_login(message[USER][ACCOUNT_NAME], client_ip, client_port)
-        #     response = create_error_response(OK)
-        #     # send_message(client, response)
-        # TODO: отработать ситуацию, если имя пользователя уже занято
-        # else:
-        #     response = create_error_response(CONFLICT, "Имя пользователя уже занято.")
-        #     send_message(client, response)
-        #     self._clients.remove(client)
-        #     client.close()
-        # return
         # Если это сообщение, то добавляем его в очередь сообщений. Ответ не требуется.
         # elif (
         # if (

@@ -1,9 +1,9 @@
 from functools import wraps
 
-from auth.models import Session
-from utils.config_jim import FORBIDDEN, MESSAGE, TOKEN
-from utils.protocol import create_response
-from utils.server_db import session_scope
+from .models import Session
+from server.utils.config_jim import FORBIDDEN, MESSAGE, TOKEN
+from server.utils.protocol import create_response
+from server.utils.server_db import session_scope
 
 
 def login_required(func):
