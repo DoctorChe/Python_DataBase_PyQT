@@ -17,4 +17,4 @@ install:
   - sudo python3 setup.py install
 
 script:
- - server_messenger -v
+ - sudo server_messenger -v
