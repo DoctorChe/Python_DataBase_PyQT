@@ -11,7 +11,7 @@ matrix:
         - sudo apt-get -qq update
         - sudo apt-get install -y python3
         - sudo apt-get install -y python3-setuptools
-        - sudo pip3 install --upgrade pip
+        - sudo apt-get install -y python3-pip
         - sudo pip3 install sqlalchemy
         - sudo pip3 install pycryptodome
       install:
@@ -28,7 +28,7 @@ matrix:
         - sudo apt-get -qq update
         - sudo apt-get install -y python3
         - sudo apt-get install -y python3-setuptools
-        - sudo pip3 install --upgrade pip
+        - sudo apt-get install -y python3-pip
         - sudo pip3 install sqlalchemy
         - sudo pip3 install pycryptodome
       install:
@@ -53,7 +53,7 @@ matrix:
       language: shell       # 'language: python' is an error on Travis CI Windows
       before_install:
         - choco install python
-        - pip install --upgrade pip
+        - python -m pip install --upgrade pip
         - pip install setuptools
         - pip install sqlalchemy
         - pip install pycryptodome
