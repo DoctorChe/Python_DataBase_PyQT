@@ -23,12 +23,9 @@ matrix:
       osx_image: xcode11    # Python 3.7.4 running on macOS 10.14.4
       language: shell       # 'language: python' is an error on Travis CI macOS
       before_install:
-        - sudo apt-get -qq update
-        - sudo apt-get install -y python3
-        - sudo apt-get install -y python3-setuptools
-        - sudo apt-get install -y python3-pip
-        - sudo pip3 install sqlalchemy
-        - sudo pip3 install pycryptodome
+        - pip install setuptools
+        - pip install sqlalchemy
+        - pip install pycryptodome
       install:
         - sudo python3 setup.py install
       script:
