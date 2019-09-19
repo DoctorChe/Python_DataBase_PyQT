@@ -17,6 +17,9 @@ matrix:
       before_install:
         - choco install python
         - python -m pip install --upgrade pip
+        - pip install setuptools
+        - pip install sqlalchemy
+        - pip install pycryptodome
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
 before_install:
   - sudo apt-get -qq update
@@ -28,4 +31,4 @@ before_install:
 install:
   - sudo python3 setup.py install
 script:
- - python3 server_messenger -v || server_messenger -v
+ - python37 server_messenger -v || python3 server_messenger -v || server_messenger -v
