@@ -44,6 +44,6 @@ matrix:
         - pip install pycryptodome
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
       install:
-        - sudo python setup.py install
+        - python setup.py install
       script:
         - server_messenger -v
