@@ -1,10 +1,19 @@
 language: python
-dist: bionic
-sudo: required
-python:
-  - "3.6"
-virtualenv:
-  system_site_packages: true
+matrix:
+  include:
+    - name: "Python 3.7.1 on Xenial Linux"
+      python: 3.7           # this works for Linux but is ignored on macOS or Windows
+    - name: "Python 3.7.4 on macOS"
+      os: osx
+      osx_image: xcode11    # Python 3.7.4 running on macOS 10.14.4
+      language: shell       # 'language: python' is an error on Travis CI macOS
+    - name: "Python 3.7.4 on Windows"
+      os: windows           # Windows 10.0.17134 N/A Build 17134
+      language: shell       # 'language: python' is an error on Travis CI Windows
+      before_install:
+        - choco install python
+        - python -m pip install --upgrade pip
+      env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y python3
@@ -12,9 +21,7 @@ before_install:
   - sudo apt-get install -y python3-pip
   - sudo pip3 install sqlalchemy
   - sudo pip3 install pycryptodome
-
 install:
   - sudo python3 setup.py install
-
 script:
- - server_messenger -v
+ - python3 server_messenger -v || server_messenger -v

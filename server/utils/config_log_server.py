@@ -1,32 +1,17 @@
 import logging.handlers
-import os
-import platform
 
 from contextlib import suppress
+from pathlib import Path
 
 from server.utils.config_server import PROGRAM
 
-# finding os platform
-os_type = platform.system()
-
-if os_type == "Linux":
-    LOG_FOLDER_PATH = os.path.join(
-        "~",
-        PROGRAM,
-        "logs",
-    )
-else:
-    # Родительская папка от папки где лежит настоящий файл + вложенная папка logs
-    LOG_FOLDER_PATH = os.path.join(
-        os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)),
-        "logs"
-    )
+LOG_FOLDER_PATH = Path.home() / f".{PROGRAM}" / "logs"
 
 with suppress(FileExistsError):
-    os.makedirs(LOG_FOLDER_PATH)  # пытаемся создать папку для логов
+    LOG_FOLDER_PATH.mkdir(mode=0o777, parents=True, exist_ok=True)
 
 # Путь до серверного лога
-SERVER_LOG_FILE_PATH = os.path.join(LOG_FOLDER_PATH, "server.log")
+SERVER_LOG_FILE_PATH = LOG_FOLDER_PATH / "server.log"
 
 # Создаём именованный объект-логгер с именем server
 server_logger = logging.getLogger("server")
