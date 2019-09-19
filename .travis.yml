@@ -11,7 +11,24 @@ matrix:
         - sudo apt-get -qq update
         - sudo apt-get install -y python3
         - sudo apt-get install -y python3-setuptools
-        - sudo apt-get install -y python3-pip
+        - sudo pip3 install --upgrade pip
+        - sudo pip3 install sqlalchemy
+        - sudo pip3 install pycryptodome
+      install:
+        - sudo python3 setup.py install
+      script:
+        - server_messenger -v
+    - name: "Python 3.7 on Bionic Linux"
+      dist: bionic
+      sudo: required
+      python: 3.7           # this works for Linux but is ignored on macOS or Windows
+      virtualenv:
+        system_site_packages: true
+      before_install:
+        - sudo apt-get -qq update
+        - sudo apt-get install -y python3
+        - sudo apt-get install -y python3-setuptools
+        - sudo pip3 install --upgrade pip
         - sudo pip3 install sqlalchemy
         - sudo pip3 install pycryptodome
       install:
@@ -36,7 +53,7 @@ matrix:
       language: shell       # 'language: python' is an error on Travis CI Windows
       before_install:
         - choco install python
-        - python -m pip install --upgrade pip
+        - pip install --upgrade pip
         - pip install setuptools
         - pip install sqlalchemy
         - pip install pycryptodome
