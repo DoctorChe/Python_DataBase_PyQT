@@ -7,4 +7,4 @@ DEFAULT_PORT = 7777
 # DEFAULT_PORT = 7777
 
 PROGRAM = "client messenger"
-VERSION = "0.0.8"
+VERSION = "0.0.8post0"
