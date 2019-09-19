@@ -1,7 +1,7 @@
 import ipaddress
 import socket
 
-from server.utils.config_log_server import server_logger
+from .config_log_server import server_logger
 
 
 class CheckedHost:

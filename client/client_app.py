@@ -1,14 +1,14 @@
 import json
 import threading
 
-from utils.config_client import MSG_SIZE
-from utils.protocol import create_message
-from utils.config_jim import RESPONSE, RESPONSE_CODES, MESSAGE, DATA
-from utils.message import compress_middleware, encrypt_middleware, to_json_middleware, from_json_middleware, \
-    decrypt_middleware, decompress_middleware
-from utils.metaclasses import ClientVerifier
-from utils.errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
-from utils.descriptors import CheckedHost, ClientName
+from client.utils.config_client import MSG_SIZE
+from client.utils.protocol import create_message
+from client.utils.config_jim import RESPONSE, RESPONSE_CODES, MESSAGE, DATA
+from client.utils.message import (compress_middleware, encrypt_middleware, to_json_middleware, from_json_middleware,
+                                  decrypt_middleware, decompress_middleware)
+from client.utils.metaclasses import ClientVerifier
+from client.utils.errors import (ResponseCodeError, ResponseCodeLenError, MessageIsNotDictError, MandatoryKeyError)
+from client.utils.descriptors import CheckedHost, ClientName
 
 from client.utils.config_log_client import client_logger
 from client.utils.decorators import logged
@@ -69,28 +69,6 @@ class Client(metaclass=ClientVerifier):
     @decompress_middleware
     def receive(self):
         return self._socket.recv(MSG_SIZE)
-
-    # @logged
-    # def create_presence(self, status=None):
-    #     """
-    #     Создание ​​presence-сообщения
-    #     :param status: статус пользователя
-    #     :return: словарь сообщения
-    #     """
-    #
-    #     unix_timestamp = time.time()
-    #     presence = {
-    #         ACTION: PRESENCE,
-    #         TIME: unix_timestamp,
-    #         USER: {
-    #             ACCOUNT_NAME: self.name,
-    #         }
-    #     }
-    #     # if status:
-    #     #     presence[TYPE] = "status"
-    #     #     presence[USER][STATUS] = status
-    #
-    #     return presence
 
     @logged
     def translate_message(self, response):

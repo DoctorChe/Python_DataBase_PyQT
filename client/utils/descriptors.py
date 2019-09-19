@@ -1,6 +1,6 @@
 import ipaddress
 import socket
-from utils.errors import UsernameToLongError
+from .errors import UsernameToLongError
 
 from client.utils.config_log_client import client_logger
 

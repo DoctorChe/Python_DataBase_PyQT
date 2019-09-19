@@ -15,10 +15,10 @@ SERVER_DATABASE = "sqlite:///server/db/server_db.sqlite3"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 PROGRAM = "server messenger"
-VERSION = "0.8"
+VERSION = "0.0.8a"
 
 INSTALLED_MODULES = (
     "echo",
     "auth",
-    "contact",
+    # "contact",
 )

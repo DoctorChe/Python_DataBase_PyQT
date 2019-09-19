@@ -2,8 +2,8 @@ import hmac
 import hashlib
 from datetime import datetime
 
-from utils.config_jim import TIME
-from utils.server_db import session_scope
+from server.utils.config_jim import TIME
+from server.utils.server_db import session_scope
 
 from .settings import SECRET_KEY
 from .models import User, Session

@@ -1,6 +1,6 @@
 from functools import wraps
 
-from client.utils.config_log_client import client_logger
+from .config_log_client import client_logger
 
 
 class Log:

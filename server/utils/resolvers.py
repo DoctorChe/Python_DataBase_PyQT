@@ -1,5 +1,5 @@
 from functools import reduce
-from utils.config_server import INSTALLED_MODULES
+from .config_server import INSTALLED_MODULES
 
 
 def get_server_actions():

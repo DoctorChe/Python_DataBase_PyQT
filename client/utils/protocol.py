@@ -1,7 +1,7 @@
 import hashlib
 from datetime import datetime
 
-from utils.config_jim import ACTION, TIME, MESSAGE, DATA, TOKEN
+from .config_jim import ACTION, TIME, MESSAGE, DATA, TOKEN
 
 
 # Функция создаёт текстовое сообщение

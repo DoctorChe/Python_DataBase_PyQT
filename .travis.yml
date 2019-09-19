@@ -1,0 +1,20 @@
+language: python
+dist: bionic
+sudo: required
+python:
+  - "3.6"
+virtualenv:
+  system_site_packages: true
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y python3
+  - sudo apt-get install -y python3-setuptools
+  - sudo apt-get install -y python3-pip
+  - sudo pip3 install sqlalchemy
+  - sudo pip3 install pycryptodome
+
+install:
+  - sudo python3 setup.py install
+
+script:
+ - server_messenger -v

@@ -1,18 +1,26 @@
 import logging.handlers
 import os
+import platform
+
 from contextlib import suppress
 
-# Родительская папка от папки где лежит настоящий файл + вложенная папка logs
-LOG_FOLDER_PATH = os.path.join(
-    os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)),
-    "logs"
-)
+from server.utils.config_server import PROGRAM
 
-# try:
-#     os.makedirs(LOG_FOLDER_PATH)  # пытаемся создать папку для логов
-# except FileExistsError:
-#     # directory already exists
-#     pass
+# finding os platform
+os_type = platform.system()
+
+if os_type == "Linux":
+    LOG_FOLDER_PATH = os.path.join(
+        "~",
+        PROGRAM,
+        "logs",
+    )
+else:
+    # Родительская папка от папки где лежит настоящий файл + вложенная папка logs
+    LOG_FOLDER_PATH = os.path.join(
+        os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)),
+        "logs"
+    )
 
 with suppress(FileExistsError):
     os.makedirs(LOG_FOLDER_PATH)  # пытаемся создать папку для логов

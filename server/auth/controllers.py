@@ -1,14 +1,14 @@
 import hmac
 from datetime import datetime
 
-from auth.decorators import login_required
-from auth.settings import SECRET_KEY
-from auth.utils import authenticate, login
-from utils.config_jim import OK, DATA, MESSAGE, WRONG_REQUEST, TIME, PASSWORD, LOGIN, TOKEN, CONFLICT
-from auth.models import User, Session
-from utils.decorators import logged
-from utils.protocol import create_response
-from utils.server_db import session_scope
+from .decorators import login_required
+from .settings import SECRET_KEY
+from .utils import authenticate, login
+from .models import User, Session
+from server.utils.config_jim import OK, DATA, MESSAGE, WRONG_REQUEST, TIME, PASSWORD, LOGIN, TOKEN, CONFLICT
+from server.utils.decorators import logged
+from server.utils.protocol import create_response
+from server.utils.server_db import session_scope
 
 
 # @logged
