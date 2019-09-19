@@ -23,13 +23,14 @@ matrix:
       osx_image: xcode11    # Python 3.7.4 running on macOS 10.14.4
       language: shell       # 'language: python' is an error on Travis CI macOS
       before_install:
-        - pip install setuptools
-        - pip install sqlalchemy
-        - pip install pycryptodome
+        - pip3 install --upgrade pip
+        - pip3 install setuptools
+        - pip3 install sqlalchemy
+        - pip3 install pycryptodome
       install:
-        - sudo python3 setup.py install
+        - python3 setup.py install
       script:
-        - python37 server_messenger -v || python3 server_messenger -v || server_messenger -v
+        - python3 server_messenger -v
     - name: "Python 3.7.4 on Windows"
       os: windows           # Windows 10.0.17134 N/A Build 17134
       language: shell       # 'language: python' is an error on Travis CI Windows
