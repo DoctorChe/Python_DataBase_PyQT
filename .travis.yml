@@ -22,8 +22,6 @@ matrix:
       dist: bionic
       sudo: required
       python: 3.7           # this works for Linux but is ignored on macOS or Windows
-      virtualenv:
-        system_site_packages: true
       before_install:
         - sudo apt-get -qq update
         - sudo apt-get install -y python3
