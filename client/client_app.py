@@ -98,13 +98,14 @@ class Client(metaclass=ClientVerifier):
         """
         Клиент читает входящие сообщения в бесконечном цикле
         """
-        message = self.receive()  # получаем ответ от сервера
-        client_logger.info(f"Принято сообщение: {message}")
-        if RESPONSE in message and DATA in message:
-            if message[RESPONSE] in range(400, 600) and MESSAGE in message[DATA]:
-                print(f"Ошибка {message[RESPONSE]} - {message[DATA][MESSAGE]}")
-            elif message[RESPONSE] in range(100, 400) and MESSAGE in message[DATA]:
-                print(message[DATA][MESSAGE])  # там должно быть сообщение
+        while True:
+            message = self.receive()  # получаем ответ от сервера
+            client_logger.info(f"Принято сообщение: {message}")
+            if RESPONSE in message and DATA in message:
+                if message[RESPONSE] in range(400, 600) and MESSAGE in message[DATA]:
+                    print(f"Ошибка {message[RESPONSE]} - {message[DATA][MESSAGE]}")
+                elif message[RESPONSE] in range(100, 400) and MESSAGE in message[DATA]:
+                    print(message[DATA][MESSAGE])  # там должно быть сообщение
 
     def write_messages(self):
         """Клиент пишет сообщение в бесконечном цикле"""

@@ -63,7 +63,7 @@ class Server(metaclass=ServerVerifier):
             message = sock.recv(MSG_SIZE)
         except Exception:
             server_logger.info(f"Клиент {sock.getpeername()} отключился от сервера.")
-            self._clients.remove(sock)
+            # self._clients.remove(sock)
         else:
             if message:
                 self._messages.append(message)
