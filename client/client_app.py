@@ -1,3 +1,4 @@
+import asyncio
 import json
 import threading
 
@@ -24,6 +25,8 @@ class Client(metaclass=ClientVerifier):
         self._host = host
         self._socket = transport
         # self._socket = None
+        self._reader = None
+        self._writer = None
 
         # super().__init__()  # Конструктор предка
 
@@ -47,28 +50,33 @@ class Client(metaclass=ClientVerifier):
         return self._name
 
     @logged
-    def connect(self):
+    async def connect(self):
         try:
-            self._socket.connect(self._host)
+            # self._socket.connect(self._host)
+            self._reader, self._writer = await asyncio.open_connection(self._host)
         except ConnectionRefusedError:
             # print("Connection refused. Server unavailable.")
             return False
         return True
 
-    def close(self):
-        self._socket.close()
+    async def close(self):
+        # self._socket.close()
+        self._writer.close()
+        await self._writer.wait_closed()
 
     @to_json_middleware
     @encrypt_middleware
     @compress_middleware
-    def send(self, request):
-        self._socket.send(request)
+    async def send(self, request):
+        # self._socket.send(request)
+        self._writer.write(request)
 
     @from_json_middleware
     @decrypt_middleware
     @decompress_middleware
-    def receive(self):
-        return self._socket.recv(MSG_SIZE)
+    async def receive(self):
+        # return self._socket.recv(MSG_SIZE)
+        return await self._reader.read(MSG_SIZE)
 
     @logged
     def translate_message(self, response):
@@ -94,12 +102,12 @@ class Client(metaclass=ClientVerifier):
 
         return response
 
-    def read_messages(self):
+    async def read_messages(self):
         """
         Клиент читает входящие сообщения в бесконечном цикле
         """
         while True:
-            message = self.receive()  # получаем ответ от сервера
+            message = await self.receive()  # получаем ответ от сервера
             client_logger.info(f"Принято сообщение: {message}")
             if RESPONSE in message and DATA in message:
                 if message[RESPONSE] in range(400, 600) and MESSAGE in message[DATA]:
@@ -107,7 +115,7 @@ class Client(metaclass=ClientVerifier):
                 elif message[RESPONSE] in range(100, 400) and MESSAGE in message[DATA]:
                     print(message[DATA][MESSAGE])  # там должно быть сообщение
 
-    def write_messages(self):
+    async def write_messages(self):
         """Клиент пишет сообщение в бесконечном цикле"""
         action = input("Enter action: ")
         dict_data = json.loads(input("Enter data: "))
@@ -119,7 +127,11 @@ class Client(metaclass=ClientVerifier):
         # {"login": "Duncan", "password": "pass"}
 
         message = create_message(action, dict_data)
-        self.send(message)
+        await self.send(message)
+
+        # task_send = asyncio.create_task(self.send(message))
+
+        # await asyncio.gather(task_send)
 
         # elif message_str == "help":
         #     print("message <получатель> <текст> - отправить сообщение")
@@ -136,9 +148,18 @@ class Client(metaclass=ClientVerifier):
         # else:
         #     print("Неверная команда, для справки введите help")
 
+    async def run_async_tasks(self):
+        task1 = asyncio.create_task(self.send())
+        task2 = asyncio.create_task(self.receive())
+        task3 = asyncio.create_task(self.read_messages())
+        task4 = asyncio.create_task(self.write_messages())
+
+        await asyncio.gather(task1, task2, task3, task4)
+
     def run(self):
         r_thread = threading.Thread(target=self.read_messages)
         r_thread.daemon = True
         r_thread.start()
         while True:
-            self.write_messages()
+            # self.write_messages()
+            asyncio.run(self.write_messages())

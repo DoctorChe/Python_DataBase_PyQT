@@ -1,4 +1,4 @@
-from socket import socket, AF_INET, SOCK_STREAM
+from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 
 from client.client_app import Client
 from client.utils.parser import create_parser
@@ -14,6 +14,7 @@ print(account_name)
 # status = "Yep, I am here!"
 
 transport = socket(AF_INET, SOCK_STREAM)
+transport.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
 
 with Client(
         (parser.parse_args().addr, parser.parse_args().port),
